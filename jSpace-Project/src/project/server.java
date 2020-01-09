@@ -210,5 +210,6 @@ class JoinGame implements Runnable{
 	}
 	
 
+	print
 	
 }
