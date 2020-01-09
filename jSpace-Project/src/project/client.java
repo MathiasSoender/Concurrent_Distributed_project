@@ -13,7 +13,7 @@ import org.jspace.SequentialSpace;
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 
 public class client {
-	static final String mainUri = "tcp://192.168.0.177/";
+	static final String mainUri = "tcp://192.168.0.166/";
     public static void main(String[] args) throws InterruptedException, UnknownHostException, IOException {
     	
     	//Connection client to server
@@ -122,7 +122,7 @@ class startGame implements Runnable {
 		List<Object[]> allPairs = localUserSpace.queryAll(new ActualField("pair"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
 		for (Object[] p : allPairs) {
 
-			System.out.println("pair usernames:" + p[1] +"and"+ p[2]);
+			System.out.println("pair usernames:" + p[1] +" and "+ p[2]);
 
 
 		}
@@ -139,10 +139,8 @@ class startGame implements Runnable {
 		while (true) {
 
 			try {
-				System.out.println(userName);
-				//Grab the object from the server. 
+				//Grab the object from the server.
 				Object[] message = localUserSpace.get(new ActualField(userName), new FormalField(String.class), new FormalField(String.class));
-				System.out.println(message[0]+ " " + message[1] + " "+message[2]);
 
 				String type = (String) message[1];
 				String output = (String) message[2];
@@ -171,7 +169,8 @@ class startGame implements Runnable {
 
 				}
 
-				if (type.equals("PairVoting")) {
+				if (type.equals("InputPairVoting")) {
+					System.out.println(output);
 					pairVoting();
 
 

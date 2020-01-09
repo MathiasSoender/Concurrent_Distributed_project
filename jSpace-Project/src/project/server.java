@@ -18,7 +18,7 @@ import org.jspace.SpaceRepository;
 
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 public class server {
-	static final String mainUri = "tcp://192.168.0.177/";
+	static final String mainUri = "tcp://192.168.0.166/";
     public static void main(String[] args) throws InterruptedException {
     	
     	//Connection server - client
@@ -119,10 +119,6 @@ class CreateGame implements Runnable{
 			System.out.println("Serverside: Initial questions given, Host has continued game");
 			
 			System.out.println("Trying to find all questions");
-			//List<Object[]> allQuestions = localUserData.queryAll(new ActualField("QuestionInitial"), new FormalField(String.class), new FormalField(String.class));
-			//for(Object[] p : allQuestions) {
-				//System.out.println("Question asked: "+p[2] + " from: " + p[1]);
-			//}
 
 			CreatePairs();
 			System.out.println("Pairs created");
@@ -151,7 +147,6 @@ class CreateGame implements Runnable{
 
 		for(Object[] p : allPlayers) {
 
-			System.out.println(p[0]);
 
 			localUserData.put(p[0],"Input"+Round,output);
 
@@ -170,7 +165,7 @@ class CreateGame implements Runnable{
 
 		List<String> usernames = new ArrayList<String>();
 
-		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new ActualField("player"), new FormalField(Integer.class));
+		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new ActualField("Player"), new FormalField(Integer.class));
 		Object[] host = localUserData.query(new FormalField(String.class), new ActualField("host"), new FormalField(Integer.class));
 
 		allPlayers.add(host);
@@ -184,8 +179,7 @@ class CreateGame implements Runnable{
 
 		}
 
-
-		for (Integer i = 0; i <= 4; i++) {
+		for (Integer i = 0; i < 4; i++) {
 
 			//Finding random pairs
 
@@ -197,8 +191,8 @@ class CreateGame implements Runnable{
 
 			//Check if they aren't the same person
 			if ( random1.equals(random2) ||
-					(localUserData.query(new ActualField("pair"),new ActualField(random1),new ActualField(random2),new ActualField(0)))!=null ||
-			(localUserData.query(new ActualField("pair"),new ActualField(random2),new ActualField(random1),new ActualField(0)))!=null)
+					(localUserData.queryp(new ActualField("pair"),new ActualField(random1),new ActualField(random2),new ActualField(0)))!=null ||
+			(localUserData.queryp(new ActualField("pair"),new ActualField(random2),new ActualField(random1),new ActualField(0)))!=null)
 			{
 				i--;
 			}
