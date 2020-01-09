@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.jspace.ActualField;
 import org.jspace.FormalField;
@@ -41,6 +43,7 @@ public class server {
 			//This is join game
 			if(newUserObj[1].equals("joinGame")) {
 		        new Thread(new JoinGame(clientServerSpace, (String) newUserObj[2],(Integer) newUserObj[3])).start();
+
 
 			}
 			//This is create game
@@ -116,13 +119,16 @@ class CreateGame implements Runnable{
 			System.out.println("Serverside: Initial questions given, Host has continued game");
 			
 			System.out.println("Trying to find all questions");
-			List<Object[]> allQuestions = localUserData.queryAll(new ActualField("QuestionInitial"), new FormalField(String.class), new FormalField(String.class));
-			for(Object[] p : allQuestions) {
-				System.out.println("Question asked: "+p[2] + " from: " + p[1]);
-			}
-			
-			
-			
+			//List<Object[]> allQuestions = localUserData.queryAll(new ActualField("QuestionInitial"), new FormalField(String.class), new FormalField(String.class));
+			//for(Object[] p : allQuestions) {
+				//System.out.println("Question asked: "+p[2] + " from: " + p[1]);
+			//}
+
+			CreatePairs();
+			System.out.println("Pairs created");
+
+			Questions("Vote for your favorite pair","PairVoting");
+
 
 
 
@@ -142,7 +148,10 @@ class CreateGame implements Runnable{
 	public void Questions(String output, String Round) throws InterruptedException {
 
 		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new FormalField(String.class), new FormalField(Integer.class));
+
 		for(Object[] p : allPlayers) {
+
+			System.out.println(p[0]);
 
 			localUserData.put(p[0],"Input"+Round,output);
 
@@ -157,7 +166,51 @@ class CreateGame implements Runnable{
 
 	}
 
-	
+	public void CreatePairs() throws InterruptedException {
+
+		List<String> usernames = new ArrayList<String>();
+
+		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new ActualField("player"), new FormalField(Integer.class));
+		Object[] host = localUserData.query(new FormalField(String.class), new ActualField("host"), new FormalField(Integer.class));
+
+		allPlayers.add(host);
+
+		Random randomizer = new Random();
+
+		for (Object[] p : allPlayers) {
+
+			usernames.add((String) p[0]);
+
+
+		}
+
+
+		for (Integer i = 0; i <= 4; i++) {
+
+			//Finding random pairs
+
+
+			String random1 = usernames.get(randomizer.nextInt(usernames.size()));
+
+			String random2 = usernames.get(randomizer.nextInt(usernames.size()));
+
+
+			//Check if they aren't the same person
+			if ( random1.equals(random2) ||
+					(localUserData.query(new ActualField("pair"),new ActualField(random1),new ActualField(random2),new ActualField(0)))!=null ||
+			(localUserData.query(new ActualField("pair"),new ActualField(random2),new ActualField(random1),new ActualField(0)))!=null)
+			{
+				i--;
+			}
+			else {
+				// pair created, with score 0.
+				localUserData.put("pair",random1,random2,0);
+			}
+
+
+		}
+
+	}
 }
 
 class JoinGame implements Runnable{
@@ -176,7 +229,7 @@ class JoinGame implements Runnable{
 	@Override
 	public void run() {
 		//We open up communication to the correct pin!
-		String uriLocalData =server.mainUri+"/localUserData"+gamePin+"?keep";
+		String uriLocalData =server.mainUri+"localUserData"+gamePin+"?keep";
 
 		try {
 			RemoteSpace localUserData = new RemoteSpace(uriLocalData);
