@@ -13,7 +13,7 @@ import org.jspace.SequentialSpace;
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 
 public class client {
-	static final String mainUri = "tcp://192.168.0.177/";
+	static final String mainUri = "tcp://192.168.0.166/";
     public static void main(String[] args) throws InterruptedException, UnknownHostException, IOException {
     	
     	//Connection client to server
@@ -133,6 +133,7 @@ class startGame implements Runnable {
 				Object[] message = localUserSpace.get(new ActualField(userName), new FormalField(String.class), new FormalField(String.class));
 				String type = (String) message[1];
 				String output = (String) message[2];
+				System.out.println("type sohuld be: " + message[1]+ " output should be: " + message[2]);
 				
 				//Check what instructions are given:
 				if (type.equals("InputInitial")) {

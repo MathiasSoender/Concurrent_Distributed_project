@@ -16,7 +16,7 @@ import org.jspace.SpaceRepository;
 
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 public class server {
-	static final String mainUri = "tcp://192.168.0.177/";
+	static final String mainUri = "tcp://192.168.0.166/";
     public static void main(String[] args) throws InterruptedException {
     	
     	//Connection server - client
@@ -142,8 +142,8 @@ class CreateGame implements Runnable{
 	public void Questions(String output, String Round) throws InterruptedException {
 
 		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new FormalField(String.class), new FormalField(Integer.class));
-		for(Object[] p : allPlayers) {
 
+		for(Object[] p : allPlayers){
 			localUserData.put(p[0],"Input"+Round,output);
 
 		}
@@ -176,7 +176,7 @@ class JoinGame implements Runnable{
 	@Override
 	public void run() {
 		//We open up communication to the correct pin!
-		String uriLocalData =server.mainUri+"/localUserData"+gamePin+"?keep";
+		String uriLocalData =server.mainUri+"localUserData"+gamePin+"?keep";
 
 		try {
 			RemoteSpace localUserData = new RemoteSpace(uriLocalData);
@@ -194,18 +194,8 @@ class JoinGame implements Runnable{
 			//Now the player is added!
 			
 			//For debugging, test the player list:
-			
-			try {
-				System.out.println("Trying to find all players");
-				List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new ActualField("Player"), new FormalField(Integer.class));
-				for(Object[] p : allPlayers) {
-					System.out.println("Player: "+p[0]);
-					
-				}
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+
+
 			
 			
 			
