@@ -121,7 +121,6 @@ class startGame implements Runnable {
 
 	@Override
 	public void run() {
-		//We open up communication to the correct pin!
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
@@ -130,16 +129,17 @@ class startGame implements Runnable {
 		while (true) {
 
 			try {
-
+				//Grab the object from the server. 
 				Object[] message = localUserSpace.get(new ActualField(userName), new FormalField(String.class), new FormalField(String.class));
 				String type = (String) message[1];
 				String output = (String) message[2];
-
-				if (type.equals("inputInitial")) {
+				
+				//Check what instructions are given:
+				if (type.equals("InputInitial")) {
 
 					System.out.println(output);
 					String Question = reader.readLine();
-
+					
 					localUserSpace.put("QuestionInitial",userName, Question);
 
 

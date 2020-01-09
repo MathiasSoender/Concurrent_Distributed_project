@@ -98,15 +98,30 @@ class CreateGame implements Runnable{
 			//And finally we add a return statement, saying everything went fine and giving the game Pin:
 			clientServerSpace.put("gameCreated",localGamePin[0]);
 			
+			//Search for the host to start the game
 			localUserData.query(new ActualField("GameStarted"));
 
 			System.out.println("serverside: game started");
 
+			//Ask the players to input their inital game for pairing round
 			Questions("Input your initial question","Initial");
 
+			//Ask the host to continue the game
 			HostMessage("Continue Game (Y/N)?");
 
+			//Check when the host continues the game
 			localUserData.get(new ActualField("continueGame"));
+			System.out.println("Serverside: Initial questions given, Host has continued game");
+			
+			System.out.println("Trying to find all questions");
+			List<Object[]> allQuestions = localUserData.queryAll(new ActualField("QuestionInitial"), new FormalField(String.class), new FormalField(String.class));
+			for(Object[] p : allQuestions) {
+				System.out.println("Question asked: "+p[2] + " from: " + p[1]);
+			}
+			
+			
+			
+
 
 
 
@@ -118,9 +133,6 @@ class CreateGame implements Runnable{
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
-		//We are essentially finished with this thread now.
-		//Players can now connect to our new game with the correct pin.
 		
 						
 		
