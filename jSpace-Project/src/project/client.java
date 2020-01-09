@@ -13,11 +13,11 @@ import org.jspace.SequentialSpace;
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 
 public class client {
-	static final String mainUri = "tcp://192.168.1.100:5001/";
+	static final String mainUri = "tcp://192.168.1.73:9001/";
     public static void main(String[] args) throws InterruptedException, UnknownHostException, IOException {
     	
     	//Connection client to server
-		String uri = "tcp://192.168.1.100:5001/clientServerSpace?keep";
+		String uri = mainUri + "clientServerSpace?keep";
 		RemoteSpace clientServerSpace = new RemoteSpace(uri);
 
 
@@ -42,7 +42,7 @@ public class client {
 			System.out.println("Game started with pin: " + gamePinInfo[1]);
 			
 			//Connect host to the localUserData:
-			String uriLocalData = "tcp://192.168.1.100:5001/localUserData"+gamePinInfo[1]+"?keep";
+			String uriLocalData = mainUri +"localUserData"+gamePinInfo[1]+"?keep";
 			RemoteSpace localUserData = new RemoteSpace(uriLocalData);
 			
 			//Time to start the game! (Only host does this)
@@ -80,7 +80,7 @@ public class client {
 				System.out.println("Player is connected!");
 				
 				//Connect Player to local game
-				String uriLocalData = "tcp://192.168.1.100:5001/localUserData"+gamePin+"?keep";
+				String uriLocalData = mainUri +"localUserData"+gamePin+"?keep";
 				localUserData = new RemoteSpace(uriLocalData);
 
 				localUserData.query(new ActualField("GameStarted"));

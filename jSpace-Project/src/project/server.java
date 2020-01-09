@@ -16,14 +16,14 @@ import org.jspace.SpaceRepository;
 
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 public class server {
-	static final String mainUri = "tcp://192.168.1.100:5001/";
+	static final String mainUri = "tcp://192.168.1.73:9001/";
     public static void main(String[] args) throws InterruptedException {
     	
     	//Connection server - client
 		SpaceRepository clientServerRepo = new SpaceRepository();
 		SequentialSpace clientServerSpace = new SequentialSpace();
 		clientServerRepo.add("clientServerSpace", clientServerSpace);
-		clientServerRepo.addGate("tcp://192.168.1.100:5001/?keep");
+		clientServerRepo.addGate(mainUri+"?keep");
 		
 		//Generate random game pins:
 		RandomSpace gamePins = new RandomSpace();
