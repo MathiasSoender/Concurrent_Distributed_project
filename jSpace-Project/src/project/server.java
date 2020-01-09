@@ -16,7 +16,7 @@ import org.jspace.SpaceRepository;
 
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 public class server {
-	static final String mainUri = "tcp://192.168.1.73:9001/";
+	static final String mainUri = "tcp://192.168.0.177/";
     public static void main(String[] args) throws InterruptedException {
     	
     	//Connection server - client
@@ -88,6 +88,8 @@ class CreateGame implements Runnable{
 		try {
 			//Get a random game pin
 			Object[] localGamePin = gamePins.get(new FormalField(Integer.class));
+
+			System.out.println(localGamePin[0]);
 						
 			//Add spaces to our repo, so Client can connect
 			clientServerRepo.add("localUserData"+localGamePin[0], localUserData);
@@ -174,7 +176,7 @@ class JoinGame implements Runnable{
 	@Override
 	public void run() {
 		//We open up communication to the correct pin!
-		String uriLocalData = "tcp://192.168.1.100:5001/localUserData"+gamePin+"?keep";
+		String uriLocalData =server.mainUri+"/localUserData"+gamePin+"?keep";
 
 		try {
 			RemoteSpace localUserData = new RemoteSpace(uriLocalData);
