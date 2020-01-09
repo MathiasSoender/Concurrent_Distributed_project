@@ -4,10 +4,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
+import java.util.List;
 
 import org.jspace.ActualField;
 import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
+import org.jspace.SequentialSpace;
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 
 public class client {
@@ -17,6 +19,8 @@ public class client {
     	//Connection client to server
 		String uri = "tcp://192.168.1.100:5001/clientServerSpace?keep";
 		RemoteSpace clientServerSpace = new RemoteSpace(uri);
+
+
     	System.out.println("Client is connected");
 
 		BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
@@ -49,6 +53,9 @@ public class client {
 			if(startGame.equals("Y")) {
 				//We tell the others that the game is ready to go:
 				localUserData.put("GameStarted");
+
+
+				new Thread(new startGame(localUserData,userName)).start();
 												
 			}
 			//Game did not start correct
@@ -62,6 +69,7 @@ public class client {
 		else {
 			System.out.print("Join game? (Y): ");
 			String joinGame = input.readLine();
+			RemoteSpace localUserData;
 			
 			if(joinGame.equals("Y")) {
 				System.out.print("Game pin?: ");
@@ -73,10 +81,12 @@ public class client {
 				
 				//Connect Player to local game
 				String uriLocalData = "tcp://192.168.1.100:5001/localUserData"+gamePin+"?keep";
-				RemoteSpace localUserData = new RemoteSpace(uriLocalData);
-				
+				localUserData = new RemoteSpace(uriLocalData);
+
 				localUserData.query(new ActualField("GameStarted"));
 				System.out.println("Game has started!");
+
+				new Thread(new startGame(localUserData,userName)).start();
 			}
 			else {
 				System.out.println("Goodbye.");
@@ -90,21 +100,90 @@ public class client {
 		
 		//game logic
 		//
-		
-		
 
 
-
-		
-		
-    	
-    	
-    		
-    		
-    	
-    		
     	
 
 }
+}
+
+
+class startGame implements Runnable {
+	private RemoteSpace localUserSpace;
+	private String userName;
+
+
+	startGame(RemoteSpace space, String userName) {
+		this.localUserSpace = space;
+		this.userName = userName;
+
+	}
+
+	@Override
+	public void run() {
+		//We open up communication to the correct pin!
+
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+
+
+		while (true) {
+
+			try {
+
+				Object[] message = localUserSpace.get(new ActualField(userName), new FormalField(String.class), new FormalField(String.class));
+				String type = (String) message[1];
+				String output = (String) message[2];
+
+				if (type.equals("inputInitial")) {
+
+					System.out.println(output);
+					String Question = reader.readLine();
+
+					localUserSpace.put("QuestionInitial",userName, Question);
+
+
+				}
+				if (type.equals("hostmessage") && userName.equals(message[0])) {
+
+					System.out.println(output);
+					String Question = reader.readLine();
+					if (Question.equals("Y")) {
+
+						localUserSpace.put("continueGame");
+
+
+
+					}
+
+
+
+				}
+			}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 }
 

@@ -64,6 +64,7 @@ class CreateGame implements Runnable{
 	private SequentialSpace clientServerSpace;
 	private String userName;
 	private SpaceRepository clientServerRepo;
+	private SequentialSpace localUserData;
 	
 	CreateGame(RandomSpace gamePins, SequentialSpace clientServerSpace,
 			String userName, SpaceRepository clientServerRepo) {
@@ -78,7 +79,8 @@ class CreateGame implements Runnable{
 	public void run() {
 		//Create new spaces of specific game
 		    //Create a specific UserName space for this game
-		SequentialSpace localUserData = new SequentialSpace();
+		this.localUserData = new SequentialSpace();
+
 		// (USERNAME, TYPE, SCORE, XXX)
 		
 		
@@ -99,6 +101,18 @@ class CreateGame implements Runnable{
 			localUserData.query(new ActualField("GameStarted"));
 
 			System.out.println("serverside: game started");
+
+			Questions("Input your initial question","Initial");
+
+			HostMessage("Continue Game (Y/N)?");
+
+			localUserData.get(new ActualField("continueGame"));
+
+
+
+
+
+
 			
 
 		} catch (InterruptedException e) {
@@ -111,6 +125,24 @@ class CreateGame implements Runnable{
 						
 		
 	}
+	public void Questions(String output, String Round) throws InterruptedException {
+
+		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new FormalField(String.class), new FormalField(Integer.class));
+		for(Object[] p : allPlayers) {
+
+			localUserData.put(p[0],"Input"+Round,output);
+
+		}
+
+	}
+
+
+	public void HostMessage(String message) throws InterruptedException {
+
+		localUserData.put(userName,"hostmessage",message);
+
+	}
+
 	
 }
 
