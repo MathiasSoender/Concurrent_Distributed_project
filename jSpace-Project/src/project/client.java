@@ -209,6 +209,7 @@ class startGame implements Runnable {
 				}
 				if (type.equals("InputBackToBack")) {
 					System.out.println(output);
+					System.out.println("Hej");
 
 
 
