@@ -146,7 +146,7 @@ class startGame implements Runnable {
 		System.out.println("You chose pair number:" +PairChosen);
 
 		int i = Integer.parseInt(PairChosen);
-		Object[] Pair = allPairs.get(i);
+		Object[] Pair = allPairs.get(i-1);
 
 		Object[] PairValue = localUserSpace.get(new ActualField("pair"), new ActualField(Pair[1]), new ActualField(Pair[2]),new FormalField(Integer.class));
 		localUserSpace.put("pair", Pair[1], Pair[2],((Integer) PairValue[3])+1);
