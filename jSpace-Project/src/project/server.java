@@ -163,6 +163,8 @@ class CreateGame implements Runnable{
 
 	public void CreatePairs() throws InterruptedException {
 
+		Integer size = 4;
+
 		List<String> usernames = new ArrayList<String>();
 
 		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new ActualField("Player"), new FormalField(Integer.class));
@@ -179,7 +181,11 @@ class CreateGame implements Runnable{
 
 		}
 
-		for (Integer i = 0; i < 4; i++) {
+		if (usernames.size()<4) {
+			size = 2;
+		}
+
+		for (Integer i = 0; i < size; i++) {
 
 			//Finding random pairs
 
