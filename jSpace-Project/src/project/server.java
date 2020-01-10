@@ -18,7 +18,7 @@ import org.jspace.SpaceRepository;
 
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 public class server {
-	static final String mainUri = "tcp://10.16.128.1/";
+	static final String mainUri = "tcp://10.16.138.134/";
     public static void main(String[] args) throws InterruptedException {
     	
     	//Connection server - client
@@ -118,21 +118,15 @@ class CreateGame implements Runnable{
 			localUserData.get(new ActualField("continueGame"));
 			System.out.println("Serverside: Initial questions given, Host has continued game");
 			
-			System.out.println("Trying to find all questions");
+			System.out.println("Trying to find random Question");
+
+			RandomInitialQuestion();
 
 			CreatePairs();
 			System.out.println("Pairs created");
 
 			Questions("Vote for your favorite pair","PairVoting");
 
-
-
-
-
-
-
-
-			
 
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -153,7 +147,6 @@ class CreateGame implements Runnable{
 		}
 
 	}
-
 
 	public void HostMessage(String message) throws InterruptedException {
 
@@ -209,6 +202,22 @@ class CreateGame implements Runnable{
 
 
 		}
+
+	}
+
+	public void RandomInitialQuestion() throws InterruptedException {
+
+		//Removes the last question if it exists.
+		localUserData.getp(new ActualField("RandomInitialQuestion"), new FormalField(String.class));
+
+		Random randomizer = new Random();
+
+		List<Object[]> allQuestions = localUserData.queryAll(new ActualField("QuestionInitial"), new FormalField(String.class), new FormalField(String.class));
+
+		Object[] randomQ = allQuestions.get(randomizer.nextInt(allQuestions.size()));
+
+		localUserData.put("RandomInitialQuestion", randomQ[2]);
+
 
 	}
 }

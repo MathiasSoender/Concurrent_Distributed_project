@@ -13,7 +13,7 @@ import org.jspace.SequentialSpace;
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 
 public class client {
-	static final String mainUri = "tcp://10.16.128.1/";
+	static final String mainUri = "tcp://10.16.138.134/";
     public static void main(String[] args) throws InterruptedException, UnknownHostException, IOException {
     	
     	//Connection client to server
@@ -118,14 +118,49 @@ class startGame implements Runnable {
 		this.userName = userName;
 
 	}
-	public void pairVoting() throws InterruptedException {
-		List<Object[]> allPairs = localUserSpace.queryAll(new ActualField("pair"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
+
+	public void Voting(List<Object[]> allPairs) throws IOException, InterruptedException {
+
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+		Integer Counter = 1;
 		for (Object[] p : allPairs) {
 
-			System.out.println("pair usernames:" + p[1] +" and "+ p[2]);
 
-
+			System.out.println(Counter + ") pair usernames:" + p[1] + " and " + p[2]);
+			Counter++;
 		}
+
+		System.out.println("Choose your number");
+		String PairChosen = reader.readLine();
+
+		System.out.println("You chose pair number:" +PairChosen);
+
+		int i = Integer.parseInt(PairChosen);
+		Object[] Pair = allPairs.get(i);
+
+
+		Object[] PairValue = localUserSpace.get(new ActualField("pair"), new ActualField(Pair[1]), new ActualField(Pair[2]),new FormalField(Integer.class));
+		localUserSpace.put("pair", Pair[1], Pair[2],((Integer) PairValue[3])+1);
+
+
+
+	}
+
+
+	public void pairVoting() throws InterruptedException, IOException {
+
+
+
+		List<Object[]> allPairs = localUserSpace.queryAll(new ActualField("pair"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
+		Object[] Question = localUserSpace.query(new ActualField("RandomInitialQuestion"),new FormalField(String.class));
+
+		System.out.println("Initial Question: "+(String) Question[1]);
+
+		Voting(allPairs);
+
+
+
 
 	}
 
@@ -133,8 +168,6 @@ class startGame implements Runnable {
 	public void run() {
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
-
 
 		while (true) {
 
@@ -153,8 +186,8 @@ class startGame implements Runnable {
 					
 					localUserSpace.put("QuestionInitial",userName, Question);
 
-
 				}
+
 				if (type.equals("hostmessage") && userName.equals(message[0])) {
 
 					System.out.println(output);
@@ -162,17 +195,12 @@ class startGame implements Runnable {
 					if (Question.equals("Y")) {
 
 						localUserSpace.put("continueGame");
-
-
-
 					}
-
 				}
 
 				if (type.equals("InputPairVoting")) {
 					System.out.println(output);
 					pairVoting();
-
 
 				}
 			}
