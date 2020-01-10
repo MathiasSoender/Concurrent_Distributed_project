@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -127,6 +128,19 @@ class CreateGame implements Runnable{
 
 			Questions("Vote for your favorite pair","PairVoting");
 
+			//Ask host to continue game
+			HostMessage("Continue Game (Y/N)?");
+			localUserData.get(new ActualField("continueGame"));
+
+			MessageToPair("GO BACK TO BACK!!!!");
+
+
+
+
+
+
+
+
 
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -135,6 +149,8 @@ class CreateGame implements Runnable{
 						
 		
 	}
+
+
 	public void Questions(String output, String Round) throws InterruptedException {
 
 		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new FormalField(String.class), new FormalField(Integer.class));
@@ -147,6 +163,28 @@ class CreateGame implements Runnable{
 		}
 
 	}
+
+	public void MessageToPair(String output) throws InterruptedException {
+		List<Object[]> Pairs = localUserData.queryAll(new ActualField("pair"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
+		Integer max = 0;
+		String pair1 = new String();
+		String pair2 = new String();
+
+		for(Object[] p : Pairs) {
+			if ((Integer) p[3] > max) {
+				max = (Integer) p[3];
+				pair1 = (String) p[1];
+				pair2 = (String) p[2];
+			}
+
+		}
+		localUserData.put(pair1,"InputBackToBack",output);
+		localUserData.put(pair2,"InputBackToBack",output);
+		Questions(pair1 +" and "+pair2+" GO BACK TO BACK","BackToBack");
+
+
+	}
+
 
 	public void HostMessage(String message) throws InterruptedException {
 

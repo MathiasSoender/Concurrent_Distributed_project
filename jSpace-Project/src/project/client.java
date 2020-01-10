@@ -148,10 +148,17 @@ class startGame implements Runnable {
 		int i = Integer.parseInt(PairChosen);
 		Object[] Pair = allPairs.get(i-1);
 
-		Object[] PairValue = localUserSpace.get(new ActualField("pair"), new ActualField(Pair[1]), new ActualField(Pair[2]),new FormalField(Integer.class));
-		localUserSpace.put("pair", Pair[1], Pair[2],((Integer) PairValue[3])+1);
 
-		System.out.println((Integer) PairValue[3]+1);
+		Object[] PairValue = localUserSpace.get(new ActualField("pair"), new ActualField(Pair[1]), new ActualField(Pair[2]),new FormalField(Integer.class));
+
+		Integer Value = (Integer) PairValue[3]+1;
+
+
+		localUserSpace.put("pair", Pair[1], Pair[2],Value);
+
+
+		//Value of chosen pair
+		System.out.println("Your chosen pair now has value: "+ Value);
 
 
 
@@ -195,6 +202,15 @@ class startGame implements Runnable {
 				if (type.equals("InputPairVoting")) {
 					System.out.println(output);
 					pairVoting();
+
+
+
+
+				}
+				if (type.equals("InputBackToBack")) {
+					System.out.println(output);
+
+
 
 
 				}
