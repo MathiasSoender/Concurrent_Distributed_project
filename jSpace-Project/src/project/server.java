@@ -18,7 +18,7 @@ import org.jspace.SpaceRepository;
 
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 public class server {
-	static final String mainUri = "tcp://192.168.0.166/";
+	static final String mainUri = "tcp://10.16.128.1/";
     public static void main(String[] args) throws InterruptedException {
     	
     	//Connection server - client
