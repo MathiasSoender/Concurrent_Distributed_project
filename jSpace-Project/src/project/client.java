@@ -189,7 +189,7 @@ class startGame implements Runnable {
 
 				}
 
-				if (type.equals("hostmessage") && userName.equals(message[0])) {
+				if (type.equals("hostmessage")) {
 
 					System.out.println(output);
 					String Question = reader.readLine();
@@ -209,7 +209,6 @@ class startGame implements Runnable {
 				}
 				if (type.equals("InputBackToBack")) {
 					System.out.println(output);
-					System.out.println("Hej");
 
 
 

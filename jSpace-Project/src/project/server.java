@@ -99,7 +99,7 @@ class CreateGame implements Runnable{
 			clientServerRepo.add("localUserData"+localGamePin[0], localUserData);
 
 			//Add our user as host. We assume host also plays, so add him as player!
-			localUserData.put(userName, "host", 0);
+			localUserData.put(userName, "Player", 0);
 
 			//And finally we add a return statement, saying everything went fine and giving the game Pin:
 			clientServerSpace.put("gameCreated",localGamePin[0]);
@@ -132,7 +132,7 @@ class CreateGame implements Runnable{
 			HostMessage("Continue Game (Y/N)?");
 			localUserData.get(new ActualField("continueGame"));
 
-			MessageToPair("GO BACK TO BACK!!!!");
+			InitBackToBack("GO BACK TO BACK!!!!");
 
 
 
@@ -153,7 +153,7 @@ class CreateGame implements Runnable{
 
 	public void Questions(String output, String Round) throws InterruptedException {
 
-		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new FormalField(String.class), new FormalField(Integer.class));
+		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new ActualField("Player"), new FormalField(Integer.class));
 
 		for(Object[] p : allPlayers) {
 
@@ -164,7 +164,7 @@ class CreateGame implements Runnable{
 
 	}
 
-	public void MessageToPair(String output) throws InterruptedException {
+	public void InitBackToBack(String output) throws InterruptedException {
 		List<Object[]> Pairs = localUserData.queryAll(new ActualField("pair"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
 		Integer max = 0;
 		String pair1 = new String();
@@ -180,7 +180,14 @@ class CreateGame implements Runnable{
 		}
 		localUserData.put(pair1,"InputBackToBack",output);
 		localUserData.put(pair2,"InputBackToBack",output);
+		Object[] FooPlayer1 = localUserData.get(new ActualField(pair1),new ActualField("Player"),new FormalField(Integer.class));
+		Object[] FooPlayer2 = localUserData.get(new ActualField(pair2),new ActualField("Player"),new FormalField(Integer.class));
+
+		localUserData.put(FooPlayer1[0],"BackToBack",FooPlayer1[2]);
+		localUserData.put(FooPlayer2[0],"BackToBack",FooPlayer2[2]);
+
 		Questions(pair1 +" and "+pair2+" GO BACK TO BACK","BackToBack");
+
 
 
 	}
@@ -199,9 +206,6 @@ class CreateGame implements Runnable{
 		List<String> usernames = new ArrayList<String>();
 
 		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new ActualField("Player"), new FormalField(Integer.class));
-		Object[] host = localUserData.query(new FormalField(String.class), new ActualField("host"), new FormalField(Integer.class));
-
-		allPlayers.add(host);
 
 		Random randomizer = new Random();
 
