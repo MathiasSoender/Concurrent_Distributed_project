@@ -119,7 +119,16 @@ class startGame implements Runnable {
 
 	}
 
-	public void Voting(List<Object[]> allPairs) throws IOException, InterruptedException {
+
+
+	public void pairVoting() throws InterruptedException, IOException {
+
+
+
+		List<Object[]> allPairs = localUserSpace.queryAll(new ActualField("pair"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
+		Object[] Question = localUserSpace.query(new ActualField("RandomInitialQuestion"),new FormalField(String.class));
+
+		System.out.println("Initial Question: "+(String) Question[1]);
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
@@ -139,25 +148,10 @@ class startGame implements Runnable {
 		int i = Integer.parseInt(PairChosen);
 		Object[] Pair = allPairs.get(i);
 
-
 		Object[] PairValue = localUserSpace.get(new ActualField("pair"), new ActualField(Pair[1]), new ActualField(Pair[2]),new FormalField(Integer.class));
 		localUserSpace.put("pair", Pair[1], Pair[2],((Integer) PairValue[3])+1);
 
-
-
-	}
-
-
-	public void pairVoting() throws InterruptedException, IOException {
-
-
-
-		List<Object[]> allPairs = localUserSpace.queryAll(new ActualField("pair"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
-		Object[] Question = localUserSpace.query(new ActualField("RandomInitialQuestion"),new FormalField(String.class));
-
-		System.out.println("Initial Question: "+(String) Question[1]);
-
-		Voting(allPairs);
+		System.out.println((Integer) PairValue[3]+1);
 
 
 
@@ -202,22 +196,9 @@ class startGame implements Runnable {
 					System.out.println(output);
 					pairVoting();
 
+
 				}
 			}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 			catch (IOException e) {
 				// TODO Auto-generated catch block

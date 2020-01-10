@@ -208,7 +208,12 @@ class CreateGame implements Runnable{
 	public void RandomInitialQuestion() throws InterruptedException {
 
 		//Removes the last question if it exists.
-		localUserData.getp(new ActualField("RandomInitialQuestion"), new FormalField(String.class));
+		Object[] InitialQ = localUserData.queryp(new ActualField("RandomInitialQuestion"), new FormalField(String.class));
+		if (InitialQ!=null) {
+
+			localUserData.get(new ActualField("RandomInitialQuestion"), new FormalField(String.class));
+		}
+
 
 		Random randomizer = new Random();
 
