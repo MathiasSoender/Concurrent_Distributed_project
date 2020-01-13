@@ -165,6 +165,18 @@ class startGame implements Runnable {
 
 	}
 
+	public void questionPairVoting() throws IOException, InterruptedException {
+
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		System.out.println("CHOOSE Y/N");
+		String answer = reader.readLine();
+		localUserSpace.put("QuestionPairVoting",userName,answer);
+
+
+
+
+	}
+
 	@Override
 	public void run() {
 
@@ -210,6 +222,15 @@ class startGame implements Runnable {
 				if (type.equals("InputBackToBack")) {
 					System.out.println(output);
 
+
+
+
+				}
+				if (type.equals("AnswerQuestion")) {
+
+					Object[] Question = localUserSpace.query(new ActualField("QuestionForPair"), new FormalField(String.class));
+					System.out.println(output + Question[1]);
+					questionPairVoting();
 
 
 

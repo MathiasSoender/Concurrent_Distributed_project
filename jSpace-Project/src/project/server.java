@@ -69,7 +69,7 @@ class CreateGame implements Runnable{
 	private String userName;
 	private SpaceRepository clientServerRepo;
 	private SequentialSpace localUserData;
-	
+	public Integer Counter;
 	CreateGame(RandomSpace gamePins, SequentialSpace clientServerSpace,
 			String userName, SpaceRepository clientServerRepo) {
 		
@@ -130,11 +130,31 @@ class CreateGame implements Runnable{
 
 			//Ask host to continue game
 			HostMessage("Continue Game (Y/N)?");
+
+
 			localUserData.get(new ActualField("continueGame"));
+
 
 			InitBackToBack("GO BACK TO BACK!!!!");
 
-			//Now pair need
+
+			//Now pair needs to answer the question chosen
+
+            Object[] Question = localUserData.get(new ActualField("RandomInitialQuestion"),new FormalField(String.class));
+            localUserData.put("QuestionForPair",Question[1]);
+
+            Counter=0;
+
+            while(Counter!=2) {
+                Questions("Answer the question: ","AnswerQuestion","BackToBack");
+                PointsForPair();
+
+            }
+
+
+
+
+
 
 
 
@@ -152,6 +172,31 @@ class CreateGame implements Runnable{
 		
 	}
 
+	public void PointsForPair() throws InterruptedException {
+        Object[] Player1 = localUserData.get(new FormalField(String.class), new ActualField("BackToBack"), new FormalField(Integer.class));
+        Object[] Player2 = localUserData.get(new FormalField(String.class), new ActualField("BackToBack"), new FormalField(Integer.class));
+
+        Object[] Answer1 =localUserData.get(new ActualField("QuestionPairVoting"),new ActualField(Player1[0]), new FormalField(String.class));
+        Object[] Answer2 =localUserData.get(new ActualField("QuestionPairVoting"),new ActualField(Player2[0]), new FormalField(String.class));
+
+        localUserData.get(new ActualField("QuestionForPair"), new FormalField(String.class));
+
+        if (Answer1[2] == Answer2[2]) {
+            Counter++;
+            localUserData.put(Player1);
+            localUserData.put(Player2);
+
+
+
+        }
+
+        else {
+            localUserData.put(Player1[0],Player1[1],((Integer) Player1[2])+1);
+            localUserData.put(Player2[0],Player2[1],((Integer) Player2[2])+1);
+        }
+
+
+    }
 
 	public void Questions(String output, String Round, String Type) throws InterruptedException {
 
