@@ -13,7 +13,7 @@ import org.jspace.SequentialSpace;
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 
 public class client {
-	static final String mainUri = "tcp://192.168.1.71/";
+	static final String mainUri = "tcp://192.168.0.166/";
     public static void main(String[] args) throws InterruptedException, UnknownHostException, IOException {
     	
     	//Connection client to server
@@ -203,6 +203,28 @@ class startGame implements Runnable {
 
 
 	}
+	public void showScore(boolean isFinal) throws InterruptedException {
+		List<Object[]> allPlayers = localUserSpace.queryAll(new FormalField(String.class),  new FormalField(String.class),new FormalField(Integer.class));
+
+
+		for (Object[] p : allPlayers) {
+			if(p[0].equals(userName)){
+				System.out.println("You have: " + p[2]);
+			}
+			else {
+
+				if (isFinal) {
+					System.out.print(p[0] + ": ");
+				} else {
+					System.out.print("Some user: ");
+				}
+				System.out.println(p[2]);
+			}
+		}
+
+
+
+	}
 
 	@Override
 	public void run() {
@@ -252,9 +274,18 @@ class startGame implements Runnable {
 					System.out.println(output);
 
 
-
-
 				}
+
+				if(type.equals("InputFinalScoreBoard")){
+					System.out.println(output);
+					showScore(true);
+				}
+
+				if(type.equals("InputScoreBoard")){
+					System.out.println(output);
+					showScore(false);
+				}
+
 				if (type.equals("InputAnswerQuestion")) {
 
 					Object[] Question = localUserSpace.query(new ActualField("QuestionForPair"), new FormalField(String.class));
