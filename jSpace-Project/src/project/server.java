@@ -19,7 +19,7 @@ import org.jspace.SpaceRepository;
 
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 public class server {
-	static final String mainUri = "tcp://192.168.0.166/";
+	static final String mainUri = "tcp://192.168.8.109/";
     public static void main(String[] args) throws InterruptedException {
     	
     	//Connection server - client
@@ -85,6 +85,7 @@ class CreateGame implements Runnable{
 		    //Create a specific UserName space for this game
 		this.localUserData = new SequentialSpace();
 
+
 		// (USERNAME, TYPE, SCORE, XXX)
 		
 		
@@ -97,6 +98,11 @@ class CreateGame implements Runnable{
 						
 			//Add spaces to our repo, so Client can connect
 			clientServerRepo.add("localUserData"+localGamePin[0], localUserData);
+
+			//Add a counter to determine if everybody entered a value
+			localUserData.put("globalCounter",0);
+			localUserData.put("globalCounterBackToBack",0);
+
 
 			//Add our user as host. We assume host also plays, so add him as player!
 			localUserData.put(userName, "Player", 0);
@@ -112,14 +118,11 @@ class CreateGame implements Runnable{
 			//Ask the players to input their inital game for pairing round
 			Questions("Input your initial question","Initial","Player");
 
-			//Ask the host to continue the game
-			HostMessage("Continue Game (Y/N)?");
-
-			//Check when the host continues the game
-			localUserData.get(new ActualField("continueGame"));
+			checkIfPlayersInputted();
 			System.out.println("Serverside: Initial questions given, Host has continued game");
 
-			while (RandomInitialQuestion()) {
+			boolean runGame = RandomInitialQuestion();
+			while (runGame) {
 
                 System.out.println("Trying to find random Question");
 
@@ -128,14 +131,12 @@ class CreateGame implements Runnable{
 
                 Questions("Vote for your favorite pair", "PairVoting", "Player");
 
-                //Ask host to continue game
-                HostMessage("Continue Game (Y/N)?");
+                //Check if players have inputted
+				checkIfPlayersInputted();
 
 
-                localUserData.get(new ActualField("continueGame"));
 
-
-                InitBackToBack("GO BACK TO BACK!!!!");
+				InitBackToBack("GO BACK TO BACK!!!!");
 
 
                 //Now pair needs to answer the question chosen
@@ -153,28 +154,29 @@ class CreateGame implements Runnable{
 
 
                 while (Counter != 2) {
-                    System.out.println(Counter);
+
                     Questions("Answer the question: ", "AnswerQuestion", "BackToBack");
-                    PointsForPair();
+
+					checkIfBackToBackInputted();
+
+					PointsForPair();
+
 
                     if (Counter != 2) {
 
-                        HostMessage("Continue Game (Y/N)?");
-                        localUserData.get(new ActualField("continueGame"));
+                        Questions("Input your new question for the pair, you can type pass to skip"
+								, "Question", "Player");
 
-
-                        Questions("Input your new question for the pair", "Question", "Player");
-                        HostMessage("Continue Game (Y/N)?");
-                        localUserData.get(new ActualField("continueGame"));
+						checkIfPlayersInputted();
 
                         Questions(" Vote for your favorite Question", "QuestionVoting", "Player");
 
-                        HostMessage("Continue Game (Y/N)?");
+                        //HostMessage("Continue Game (Y/N)?");
+                        //localUserData.get(new ActualField("continueGame"));
+						checkIfPlayersInputted();
 
 
-                        localUserData.get(new ActualField("continueGame"));
-
-                        QuestionVoting();
+						QuestionVoting();
 
 
                         System.out.println("Inside While");
@@ -183,15 +185,21 @@ class CreateGame implements Runnable{
 
 
                 }
-                if(RandomInitialQuestion()){
-                	Questions("Scoreboard: ", "ScoreBoard", "Player");}
-
+                //Check if game should still be run:
+                runGame = RandomInitialQuestion();
+                if(runGame) {
+					Questions("Scoreboard: ", "ScoreBoard", "Player");
+				}
 
             }
 			//End off game.
 			Questions("Scoreboard: ","FinalScoreBoard","Player");
-
-
+			Questions("Goodbye, Thanks for playing", "Exit","Player");
+			checkIfPlayersInputted();
+			//Re insert the game pin
+			gamePins.put((Integer) localGamePin[0]);
+			//Remove the space:
+			clientServerRepo.remove("localUserData"+localGamePin[0]);
 
 
 		} catch (InterruptedException e) {
@@ -201,7 +209,30 @@ class CreateGame implements Runnable{
 						
 		
 	}
+	public void checkIfPlayersInputted() throws InterruptedException {
+		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class),
+				new ActualField("Player"), new FormalField(Integer.class));
 
+		Object[] fooCounter =  localUserData.get(new ActualField("globalCounter"),
+				new ActualField(allPlayers.size()));
+		localUserData.put(fooCounter[0], 0);
+
+	}
+
+	public void checkIfBackToBackInputted() throws InterruptedException {
+		List<Object[]> allBackToBack = localUserData.queryAll(new FormalField(String.class),
+				new ActualField("BackToBack"), new FormalField(Integer.class));
+
+
+		Object[] fooCounterb2b =  localUserData.get(new ActualField("globalCounterBackToBack"),
+				new ActualField(allBackToBack.size()));
+
+		localUserData.put(fooCounterb2b[0], 0);
+
+
+
+
+	}
 	public void PointsForPair() throws InterruptedException {
         Object[] Player1 = localUserData.get(new FormalField(String.class), new ActualField("BackToBack"), new FormalField(Integer.class));
         Object[] Player2 = localUserData.get(new FormalField(String.class), new ActualField("BackToBack"), new FormalField(Integer.class));
@@ -422,23 +453,7 @@ class JoinGame implements Runnable{
 			}
 			
 			//Now the player is added!
-			
-			//For debugging, test the player list:
-			
-			try {
-				System.out.println("Trying to find all players");
-				List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new ActualField("Player"), new FormalField(Integer.class));
-				for(Object[] p : allPlayers) {
-					System.out.println("Player: "+p[0]);
-					
-				}
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			
-			
+
 			
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block

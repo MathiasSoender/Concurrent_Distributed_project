@@ -13,7 +13,7 @@ import org.jspace.SequentialSpace;
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 
 public class client {
-	static final String mainUri = "tcp://192.168.0.166/";
+	static final String mainUri = "tcp://192.168.8.109/";
     public static void main(String[] args) throws InterruptedException, UnknownHostException, IOException {
     	
     	//Connection client to server
@@ -248,6 +248,10 @@ class startGame implements Runnable {
 					
 					localUserSpace.put("QuestionInitial",userName, Question);
 
+					//Counter stuff
+					Object[] fooCounter = localUserSpace.get(new ActualField("globalCounter"), new FormalField(Integer.class));
+					localUserSpace.put(fooCounter[0], (Integer) fooCounter[1]+1);
+
 				}
 
 				if (type.equals("hostmessage")) {
@@ -266,6 +270,11 @@ class startGame implements Runnable {
 					System.out.println(output);
 					pairVoting();
 
+					//Counter stuff
+					Object[] fooCounter = localUserSpace.get(new ActualField("globalCounter"), new FormalField(Integer.class));
+					localUserSpace.put(fooCounter[0], (Integer) fooCounter[1]+1);
+
+
 
 
 
@@ -274,6 +283,15 @@ class startGame implements Runnable {
 					System.out.println(output);
 
 
+				}
+				if (type.equals("InputExit")) {
+					System.out.println(output);
+
+					//Counter stuff
+					Object[] fooCounter = localUserSpace.get(new ActualField("globalCounter"), new FormalField(Integer.class));
+					localUserSpace.put(fooCounter[0], (Integer) fooCounter[1]+1);
+
+					System.exit(0);
 				}
 
 				if(type.equals("InputFinalScoreBoard")){
@@ -292,6 +310,10 @@ class startGame implements Runnable {
 					System.out.println(output + Question[1]);
 					questionPairVoting();
 
+					//Counter stuff
+					Object[] fooCounterB2B = localUserSpace.get(new ActualField("globalCounterBackToBack"), new FormalField(Integer.class));
+					localUserSpace.put(fooCounterB2B[0], (Integer) fooCounterB2B[1]+1);
+
 
 
 				}
@@ -299,8 +321,15 @@ class startGame implements Runnable {
 					System.out.println(output);
 
 					String Question = reader.readLine();
+					//Gives the option of passing, if no questions comes to mind.
+					//^This ensures game is kept on playing.
+					if(!Question.equals("pass")) {
+						localUserSpace.put("QuestionMain", userName, Question, 0);
+					}
+					//Counter stuff
+					Object[] fooCounter = localUserSpace.get(new ActualField("globalCounter"), new FormalField(Integer.class));
+					localUserSpace.put(fooCounter[0], (Integer) fooCounter[1]+1);
 
-					localUserSpace.put("QuestionMain",userName, Question,0);
 
 
 
@@ -309,6 +338,11 @@ class startGame implements Runnable {
 				if(type.equals("InputQuestionVoting")) {
 
 					questionVoting();
+
+					//Counter stuff
+					Object[] fooCounter = localUserSpace.get(new ActualField("globalCounter"), new FormalField(Integer.class));
+					localUserSpace.put(fooCounter[0], (Integer) fooCounter[1]+1);
+
 
 				}
 			}
