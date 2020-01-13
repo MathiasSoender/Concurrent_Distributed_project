@@ -13,7 +13,7 @@ import org.jspace.SequentialSpace;
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 
 public class client {
-	static final String mainUri = "tcp://192.168.1.92/";
+	static final String mainUri = "tcp://192.168.1.71/";
     public static void main(String[] args) throws InterruptedException, UnknownHostException, IOException {
     	
     	//Connection client to server
@@ -27,10 +27,11 @@ public class client {
 		
 		System.out.print("Username: ");
 		String userName = input.readLine();
-
-		
-		System.out.print("Create game? (Y/N): ");
-		String createGame = input.readLine();
+		String createGame = "";
+		while(!createGame.equals("Y") && !createGame.equals("N")) {
+			System.out.print("Create game? (Y/N): ");
+			createGame = input.readLine();
+		}
 		
 		//The user is now a host of a game
 		if(createGame.equals("Y")){
@@ -46,32 +47,24 @@ public class client {
 			RemoteSpace localUserData = new RemoteSpace(uriLocalData);
 			
 			//Time to start the game! (Only host does this)
-			System.out.print("Start game? (Y): ");
-			String startGame = input.readLine();
+			String startGame = "";
+			while(!startGame.equals("Y")) {
+				System.out.print("Start game? (Y): ");
+				startGame = input.readLine();
+			}
 			
 			//Game has been started
-			if(startGame.equals("Y")) {
-				//We tell the others that the game is ready to go:
-				localUserData.put("GameStarted");
-
-
-				new Thread(new startGame(localUserData,userName)).start();
-												
-			}
-			//Game did not start correct
-			else {
-				System.out.println("Game did not start correctly, reset.");
-			}
+			//We tell the others that the game is ready to go:
+			localUserData.put("GameStarted");
+			new Thread(new startGame(localUserData,userName)).start();
 
 		}
 		
 		//The user is now a regular player of a game
-		else {
-			System.out.print("Join game? (Y): ");
-			String joinGame = input.readLine();
+		if(createGame.equals("N")){
+
 			RemoteSpace localUserData;
 			
-			if(joinGame.equals("Y")) {
 				System.out.print("Game pin?: ");
 				String gamePinStr =  input.readLine();
 				int gamePin = Integer.parseInt(gamePinStr);
@@ -88,18 +81,11 @@ public class client {
 
 				new Thread(new startGame(localUserData,userName)).start();
 			}
-			else {
-				System.out.println("Goodbye.");
-			}
-		}
-		
-		
-		//More to come about game info (Questions, voting etc)
-		
+
+
 
 		
-		//game logic
-		//
+
 
 
     	
@@ -131,9 +117,11 @@ class startGame implements Runnable {
 			System.out.println(Counter + ") Question:" + q[2]);
 			Counter++;
 		}
-
-		System.out.println("Choose your number");
-		String QuestionChosen = reader.readLine();
+		String QuestionChosen = "10000000";
+		while(Integer.parseInt(QuestionChosen)>= Counter || Integer.parseInt(QuestionChosen)<=0 ) {
+			System.out.println("Choose your number: ");
+			QuestionChosen = reader.readLine();
+		}
 
 		System.out.println("You chose question number:" +QuestionChosen);
 
@@ -173,9 +161,11 @@ class startGame implements Runnable {
 			System.out.println(Counter + ") pair usernames:" + p[1] + " and " + p[2]);
 			Counter++;
 		}
-
-		System.out.println("Choose your number");
-		String PairChosen = reader.readLine();
+		String PairChosen = "10000000";
+		while(Integer.parseInt(PairChosen)>= Counter || Integer.parseInt(PairChosen)<=0 ) {
+			System.out.println("Choose your number: ");
+			PairChosen = reader.readLine();
+		}
 
 		System.out.println("You chose pair number:" +PairChosen);
 
@@ -202,8 +192,11 @@ class startGame implements Runnable {
 	public void questionPairVoting() throws IOException, InterruptedException {
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-		System.out.println("CHOOSE Y/N");
-		String answer = reader.readLine();
+		String answer = "";
+		while(!answer.equals("Y") && !answer.equals("N")) {
+			System.out.println("CHOOSE Y/N");
+			answer = reader.readLine();
+		}
 		localUserSpace.put("QuestionPairVoting",userName,answer);
 
 
@@ -238,11 +231,13 @@ class startGame implements Runnable {
 				if (type.equals("hostmessage")) {
 
 					System.out.println(output);
-					String Question = reader.readLine();
-					if (Question.equals("Y")) {
-
-						localUserSpace.put("continueGame");
+					String Question = "";
+					while(!Question.equals("Y")) {
+						Question = reader.readLine();
 					}
+
+					localUserSpace.put("continueGame");
+
 				}
 
 				if (type.equals("InputPairVoting")) {

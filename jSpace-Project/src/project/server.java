@@ -19,7 +19,7 @@ import org.jspace.SpaceRepository;
 
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 public class server {
-	static final String mainUri = "tcp://192.168.1.92/";
+	static final String mainUri = "tcp://192.168.1.71/";
     public static void main(String[] args) throws InterruptedException {
     	
     	//Connection server - client
@@ -183,6 +183,8 @@ class CreateGame implements Runnable{
 
 
                 }
+                Questions("You lost","BackToBack","BackToBack");
+                //Scoreboard stuff
 
             }
 
@@ -205,8 +207,16 @@ class CreateGame implements Runnable{
 
         if (Answer1[2].equals(Answer2[2])) {
             Counter++;
-            localUserData.put(Player1);
-            localUserData.put(Player2);
+            //If back2back lose, put them back as players
+            if (Counter == 2){
+				localUserData.put(Player1[0], "Player", Player1[2]);
+				localUserData.put(Player2[0], "Player", Player2[2]);
+				}
+
+            else {
+				localUserData.put(Player1);
+				localUserData.put(Player2);
+			}
 
 
 
@@ -293,6 +303,13 @@ class CreateGame implements Runnable{
 
 	public void CreatePairs() throws InterruptedException {
 
+
+		//If pairs are still in the space, remove them
+		List<Object[]> allPairs = localUserData.queryAll(new ActualField("pair"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
+		if(!allPairs.isEmpty()){
+			localUserData.getAll(new ActualField("pair"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
+		}
+
 		Integer size = 4;
 
 		List<String> usernames = new ArrayList<String>();
@@ -302,6 +319,7 @@ class CreateGame implements Runnable{
 		Random randomizer = new Random();
 
 		for (Object[] p : allPlayers) {
+			System.out.println("Player : " + p[0] + " Found");
 
 			usernames.add((String) p[0]);
 
@@ -357,7 +375,8 @@ class CreateGame implements Runnable{
         }
 
 		Object[] randomQ = allQuestions.get(randomizer.nextInt(allQuestions.size()));
-
+        //Remember to remove the initial question.
+		localUserData.get(new ActualField(randomQ[0]), new ActualField(randomQ[1]), new ActualField(randomQ[2]));
 		localUserData.put("RandomInitialQuestion", randomQ[2]);
 
 		return true;
