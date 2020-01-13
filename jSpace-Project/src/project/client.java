@@ -13,7 +13,7 @@ import org.jspace.SequentialSpace;
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 
 public class client {
-	static final String mainUri = "tcp://10.16.138.134/";
+	static final String mainUri = "tcp://192.168.1.92/";
     public static void main(String[] args) throws InterruptedException, UnknownHostException, IOException {
     	
     	//Connection client to server
@@ -119,6 +119,40 @@ class startGame implements Runnable {
 
 	}
 
+	public void questionVoting() throws IOException, InterruptedException {
+
+		List<Object[]> allQuestions = localUserSpace.queryAll(new ActualField("QuestionMain"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+		Integer Counter = 1;
+		for (Object[] q : allQuestions) {
+
+
+			System.out.println(Counter + ") Question:" + q[2]);
+			Counter++;
+		}
+
+		System.out.println("Choose your number");
+		String QuestionChosen = reader.readLine();
+
+		System.out.println("You chose question number:" +QuestionChosen);
+
+		int i = Integer.parseInt(QuestionChosen);
+		Object[] Question = allQuestions.get(i-1);
+
+
+		Object[] QuestionValue = localUserSpace.get(new ActualField("QuestionMain"), new ActualField(Question[1]), new ActualField(Question[2]),new FormalField(Integer.class));
+
+		Integer Value = (Integer) QuestionValue[3]+1;
+
+
+		localUserSpace.put("QuestionMain", Question[1], Question[2],Value);
+
+
+		//Value of chosen pair
+		System.out.println("Your chosen question now has value: "+ Value);
+
+	}
 
 
 	public void pairVoting() throws InterruptedException, IOException {
@@ -226,13 +260,29 @@ class startGame implements Runnable {
 
 
 				}
-				if (type.equals("AnswerQuestion")) {
+				if (type.equals("InputAnswerQuestion")) {
 
 					Object[] Question = localUserSpace.query(new ActualField("QuestionForPair"), new FormalField(String.class));
 					System.out.println(output + Question[1]);
 					questionPairVoting();
 
 
+
+				}
+				if (type.equals("InputQuestion")) {
+					System.out.println(output);
+
+					String Question = reader.readLine();
+
+					localUserSpace.put("QuestionMain",userName, Question,0);
+
+
+
+				}
+
+				if(type.equals("InputQuestionVoting")) {
+
+					questionVoting();
 
 				}
 			}

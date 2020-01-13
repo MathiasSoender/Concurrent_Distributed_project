@@ -19,7 +19,7 @@ import org.jspace.SpaceRepository;
 
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 public class server {
-	static final String mainUri = "tcp://10.16.138.134/";
+	static final String mainUri = "tcp://192.168.1.92/";
     public static void main(String[] args) throws InterruptedException {
     	
     	//Connection server - client
@@ -118,51 +118,73 @@ class CreateGame implements Runnable{
 			//Check when the host continues the game
 			localUserData.get(new ActualField("continueGame"));
 			System.out.println("Serverside: Initial questions given, Host has continued game");
-			
-			System.out.println("Trying to find random Question");
 
-			RandomInitialQuestion();
+			while (RandomInitialQuestion()) {
 
-			CreatePairs();
-			System.out.println("Pairs created");
+                System.out.println("Trying to find random Question");
 
-			Questions("Vote for your favorite pair","PairVoting","Player");
-
-			//Ask host to continue game
-			HostMessage("Continue Game (Y/N)?");
+                CreatePairs();
 
 
-			localUserData.get(new ActualField("continueGame"));
+                Questions("Vote for your favorite pair", "PairVoting", "Player");
+
+                //Ask host to continue game
+                HostMessage("Continue Game (Y/N)?");
 
 
-			InitBackToBack("GO BACK TO BACK!!!!");
+                localUserData.get(new ActualField("continueGame"));
 
 
-			//Now pair needs to answer the question chosen
+                InitBackToBack("GO BACK TO BACK!!!!");
 
-            Object[] Question = localUserData.get(new ActualField("RandomInitialQuestion"),new FormalField(String.class));
-            localUserData.put("QuestionForPair",Question[1]);
 
-            Counter=0;
+                //Now pair needs to answer the question chosen
 
-            while(Counter!=2) {
-                Questions("Answer the question: ","AnswerQuestion","BackToBack");
-                PointsForPair();
+                System.out.println("Waiting for question");
+                Object[] Question = localUserData.get(new ActualField("RandomInitialQuestion"), new FormalField(String.class));
+
+                System.out.println("Got the question");
+                localUserData.put("QuestionForPair", Question[1]);
+
+                Counter = 0;
+
+
+                System.out.println("Before while");
+
+
+                while (Counter != 2) {
+                    System.out.println(Counter);
+                    Questions("Answer the question: ", "AnswerQuestion", "BackToBack");
+                    PointsForPair();
+
+                    if (Counter != 2) {
+
+                        HostMessage("Continue Game (Y/N)?");
+                        localUserData.get(new ActualField("continueGame"));
+
+
+                        Questions("Input your new question for the pair", "Question", "Player");
+                        HostMessage("Continue Game (Y/N)?");
+                        localUserData.get(new ActualField("continueGame"));
+
+                        Questions(" Vote for your favorite Question", "QuestionVoting", "Player");
+
+                        HostMessage("Continue Game (Y/N)?");
+
+
+                        localUserData.get(new ActualField("continueGame"));
+
+                        QuestionVoting();
+
+
+                        System.out.println("Inside While");
+
+                    }
+
+
+                }
 
             }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -181,7 +203,7 @@ class CreateGame implements Runnable{
 
         localUserData.get(new ActualField("QuestionForPair"), new FormalField(String.class));
 
-        if (Answer1[2] == Answer2[2]) {
+        if (Answer1[2].equals(Answer2[2])) {
             Counter++;
             localUserData.put(Player1);
             localUserData.put(Player2);
@@ -193,6 +215,7 @@ class CreateGame implements Runnable{
         else {
             localUserData.put(Player1[0],Player1[1],((Integer) Player1[2])+1);
             localUserData.put(Player2[0],Player2[1],((Integer) Player2[2])+1);
+            Counter=0;
         }
 
 
@@ -211,7 +234,29 @@ class CreateGame implements Runnable{
 
 	}
 
-	public void InitBackToBack(String output) throws InterruptedException {
+    public void QuestionVoting() throws InterruptedException {
+        List<Object[]> Questions = localUserData.getAll(new ActualField("QuestionMain"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
+        Integer max = 0;
+        String q1 = new String();
+        String user = new String();
+        for(Object[] q : Questions) {
+            if ((Integer) q[3] > max) {
+                max = (Integer) q[3];
+                q1 = (String) q[2];
+                user = (String) q[1];
+            }
+
+        }
+
+
+        Object[] winner = localUserData.get(new ActualField(user),new ActualField("Player"),new FormalField(Integer.class));
+        localUserData.put(user,"Player",((Integer) winner[2])+1);
+
+        localUserData.put("QuestionForPair",q1);
+    }
+
+
+    public void InitBackToBack(String output) throws InterruptedException {
 		List<Object[]> Pairs = localUserData.queryAll(new ActualField("pair"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
 		Integer max = 0;
 		String pair1 = new String();
@@ -294,7 +339,7 @@ class CreateGame implements Runnable{
 
 	}
 
-	public void RandomInitialQuestion() throws InterruptedException {
+	public boolean RandomInitialQuestion() throws InterruptedException {
 
 		//Removes the last question if it exists.
 		Object[] InitialQ = localUserData.queryp(new ActualField("RandomInitialQuestion"), new FormalField(String.class));
@@ -307,11 +352,15 @@ class CreateGame implements Runnable{
 		Random randomizer = new Random();
 
 		List<Object[]> allQuestions = localUserData.queryAll(new ActualField("QuestionInitial"), new FormalField(String.class), new FormalField(String.class));
+        if (allQuestions.isEmpty()) {
+            return false;
+        }
 
 		Object[] randomQ = allQuestions.get(randomizer.nextInt(allQuestions.size()));
 
 		localUserData.put("RandomInitialQuestion", randomQ[2]);
 
+		return true;
 
 	}
 }
