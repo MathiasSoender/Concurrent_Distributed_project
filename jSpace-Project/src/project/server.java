@@ -110,7 +110,7 @@ class CreateGame implements Runnable{
 			System.out.println("serverside: game started");
 
 			//Ask the players to input their inital game for pairing round
-			Questions("Input your initial question","Initial");
+			Questions("Input your initial question","Initial","Player");
 
 			//Ask the host to continue the game
 			HostMessage("Continue Game (Y/N)?");
@@ -126,13 +126,15 @@ class CreateGame implements Runnable{
 			CreatePairs();
 			System.out.println("Pairs created");
 
-			Questions("Vote for your favorite pair","PairVoting");
+			Questions("Vote for your favorite pair","PairVoting","Player");
 
 			//Ask host to continue game
 			HostMessage("Continue Game (Y/N)?");
 			localUserData.get(new ActualField("continueGame"));
 
 			InitBackToBack("GO BACK TO BACK!!!!");
+
+			//Now pair need
 
 
 
@@ -151,9 +153,9 @@ class CreateGame implements Runnable{
 	}
 
 
-	public void Questions(String output, String Round) throws InterruptedException {
+	public void Questions(String output, String Round, String Type) throws InterruptedException {
 
-		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new ActualField("Player"), new FormalField(Integer.class));
+		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new ActualField(Type), new FormalField(Integer.class));
 
 		for(Object[] p : allPlayers) {
 
@@ -186,7 +188,7 @@ class CreateGame implements Runnable{
 		localUserData.put(FooPlayer1[0],"BackToBack",FooPlayer1[2]);
 		localUserData.put(FooPlayer2[0],"BackToBack",FooPlayer2[2]);
 
-		Questions(pair1 +" and "+pair2+" GO BACK TO BACK","BackToBack");
+		Questions(pair1 +" and "+pair2+" GO BACK TO BACK","BackToBack","Player");
 
 
 
