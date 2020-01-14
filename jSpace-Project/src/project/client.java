@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Random;
 
 import org.jspace.ActualField;
 import org.jspace.FormalField;
@@ -107,40 +108,49 @@ class startGame implements Runnable {
 
 	public void questionVoting() throws IOException, InterruptedException {
 
-		List<Object[]> allQuestions = localUserSpace.queryAll(new ActualField("QuestionMain"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
-		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
-		Integer Counter = 1;
-		for (Object[] q : allQuestions) {
+		List<Object[]> allQuestions = localUserSpace.queryAll(new ActualField("QuestionMain"),
+				new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
 
 
-			System.out.println(Counter + ") Question:" + q[2]);
-			Counter++;
+
+			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+			Integer Counter = 1;
+
+
+			for (Object[] q : allQuestions) {
+
+
+				System.out.println(Counter + ") Question:" + q[2]);
+				Counter++;
+			}
+			String QuestionChosen = "10000000";
+			while (Integer.parseInt(QuestionChosen) >= Counter || Integer.parseInt(QuestionChosen) <= 0) {
+				System.out.println("Choose your number: ");
+				QuestionChosen = reader.readLine();
+			}
+
+			System.out.println("You chose question number:" + QuestionChosen);
+
+			int i = Integer.parseInt(QuestionChosen);
+			Object[] Question = allQuestions.get(i - 1);
+
+
+			Object[] QuestionValue = localUserSpace.get(new ActualField("QuestionMain"), new ActualField(Question[1]), new ActualField(Question[2]), new FormalField(Integer.class));
+
+			Integer Value = (Integer) QuestionValue[3] + 1;
+
+
+			localUserSpace.put("QuestionMain", Question[1], Question[2], Value);
+
+
+			//Value of chosen pair
+			System.out.println("Your chosen question now has value: " + Value);
+
+
 		}
-		String QuestionChosen = "10000000";
-		while(Integer.parseInt(QuestionChosen)>= Counter || Integer.parseInt(QuestionChosen)<=0 ) {
-			System.out.println("Choose your number: ");
-			QuestionChosen = reader.readLine();
-		}
-
-		System.out.println("You chose question number:" +QuestionChosen);
-
-		int i = Integer.parseInt(QuestionChosen);
-		Object[] Question = allQuestions.get(i-1);
 
 
-		Object[] QuestionValue = localUserSpace.get(new ActualField("QuestionMain"), new ActualField(Question[1]), new ActualField(Question[2]),new FormalField(Integer.class));
-
-		Integer Value = (Integer) QuestionValue[3]+1;
-
-
-		localUserSpace.put("QuestionMain", Question[1], Question[2],Value);
-
-
-		//Value of chosen pair
-		System.out.println("Your chosen question now has value: "+ Value);
-
-	}
 
 
 	public void pairVoting() throws InterruptedException, IOException {
@@ -311,7 +321,7 @@ class startGame implements Runnable {
 					questionPairVoting();
 
 					//Counter stuff
-					Object[] fooCounterB2B = localUserSpace.get(new ActualField("globalCounterBackToBack"), new FormalField(Integer.class));
+					Object[] fooCounterB2B = localUserSpace.get(new ActualField("globalCounter"), new FormalField(Integer.class));
 					localUserSpace.put(fooCounterB2B[0], (Integer) fooCounterB2B[1]+1);
 
 
