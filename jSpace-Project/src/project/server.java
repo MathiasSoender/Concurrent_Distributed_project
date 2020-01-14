@@ -108,7 +108,7 @@ class CreateGame implements Runnable{
 			localUserData.put(userName, "Player", 0);
 
 			//And finally we add a return statement, saying everything went fine and giving the game Pin:
-			clientServerSpace.put("gameCreated",localGamePin[0]);
+			clientServerSpace.put("gameCreated",localGamePin[0], userName);
 			
 			//Search for the host to start the game
 			localUserData.query(new ActualField("GameStarted"));

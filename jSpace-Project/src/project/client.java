@@ -39,7 +39,7 @@ public class client {
 			clientServerSpace.put("newUser","createGame", userName, -1);
 			
 			//We get the confirm status, with the randomly generated gamePin:
-			Object[] gamePinInfo =clientServerSpace.get(new ActualField("gameCreated"),new FormalField(Integer.class));
+			Object[] gamePinInfo =clientServerSpace.get(new ActualField("gameCreated"),new FormalField(Integer.class), new ActualField(userName));
 			System.out.println("Game started with pin: " + gamePinInfo[1]);
 			
 			//Connect host to the localUserData:
