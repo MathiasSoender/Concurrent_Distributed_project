@@ -13,7 +13,7 @@ import org.jspace.*;
 
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 public class server {
-	static final String mainUri = "tcp://192.168.8.109/";
+	static final String mainUri = "tcp://192.168.0.166/";
     public static void main(String[] args) throws InterruptedException {
     	
     	//Connection server - client
@@ -21,7 +21,6 @@ public class server {
 		SequentialSpace clientServerSpace = new SequentialSpace();
 		clientServerRepo.add("clientServerSpace", clientServerSpace);
 		clientServerRepo.addGate(mainUri+"?keep");
-		
 		//Generate random game pins:
 		RandomSpace gamePins = new RandomSpace();
 		for(int i = 0; i<1000; i++) {
@@ -121,8 +120,8 @@ class CreateGame implements Runnable{
 
                 System.out.println("Trying to find random Question");
 
-                CreatePairs();
 
+                CreatePairs();
 
                 Questions("Vote for your favorite pair", "PairVoting", "Player");
 
@@ -152,6 +151,7 @@ class CreateGame implements Runnable{
 
                     Questions("Answer the question: ", "AnswerQuestion", "BackToBack");
 
+					System.out.println("waiting for b2b");
 					checkIfPlayersInputted("BackToBack");
 
 					PointsForPair();
@@ -159,7 +159,17 @@ class CreateGame implements Runnable{
 
                     if (Counter != 2) {
 
-                        Questions("Input your new question for the pair, you can type pass to skip"
+						System.out.println("Before alive check");
+
+						//Check if all players are still going at it
+						Thread playersAlive = new Thread(new playersAlive(localUserData));
+						playersAlive.start();
+						//Wait for execution.
+						playersAlive.join();
+						System.out.println("AFter alive check");
+
+
+						Questions("Input your new question for the pair, you can type pass to skip"
 								, "Question", "Player");
 
 						checkIfPlayersInputted("Player");
@@ -205,6 +215,9 @@ class CreateGame implements Runnable{
 		
 	}
 	public void checkIfPlayersInputted(String type) throws InterruptedException {
+
+
+
 		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class),
 				new ActualField(type), new FormalField(Integer.class));
 
@@ -324,12 +337,6 @@ class CreateGame implements Runnable{
 	}
 
 
-	public void HostMessage(String message) throws InterruptedException {
-
-		localUserData.put(userName,"hostmessage",message);
-
-	}
-
 	public void CreatePairs() throws InterruptedException {
 
 
@@ -413,6 +420,63 @@ class CreateGame implements Runnable{
 	}
 }
 
+
+class playersAlive implements  Runnable{
+	private SequentialSpace localUserData;
+
+	playersAlive(SequentialSpace localUserData){
+		this.localUserData = localUserData;
+	}
+
+	public void Ping() throws InterruptedException {
+
+		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class),
+				new ActualField("Player"), new FormalField(Integer.class));
+
+		for(Object[] p : allPlayers) {
+
+
+			localUserData.put(p[0],"pinged","1");
+			System.out.println("1 ping inserted...");
+
+		}
+
+	}
+
+	public void run() {
+		try {
+			Ping();
+			Thread.sleep(10000);
+
+			List<Object[]> allPings =  localUserData.queryAll(new FormalField(String.class),
+					new ActualField("pinged"), new ActualField("1"));
+			System.out.println(allPings.size());
+			for(Object[] ping : allPings) {
+				System.out.println("In allPing loop");
+				localUserData.get(new ActualField(ping[0]),
+						new ActualField("Player"), new FormalField(Integer.class));
+				System.out.println("Player removed: " + ping[0]);
+			}
+
+
+
+
+
+
+
+
+
+
+			} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+
+	}
+
+
+	}
+
 class JoinGame implements Runnable{
 	private SequentialSpace clientServerSpace;
 	private String userName;
@@ -433,15 +497,33 @@ class JoinGame implements Runnable{
 
 		try {
 			RemoteSpace localUserData = new RemoteSpace(uriLocalData);
+			List<Object[]> AllPlayers = localUserData.queryAll(new FormalField(String.class),
+					new ActualField("Player"), new ActualField(0));
+			boolean uniqueName = true;
+			for(Object[] p : AllPlayers){
+				if(p[0].equals(userName)){
+					uniqueName = false;
+				}
+
+			}
+
 
 			//We add the name to the local user names:
-			try {
-				localUserData.put(userName, "Player", 0);
-				//Also add an inital score:
-				System.out.println("Player added to game lobby");
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+			if(uniqueName) {
+				try {
+					localUserData.put(userName, "Player", 0);
+					clientServerSpace.put(userName, "joinedGame");
+					//Also add an inital score:
+					System.out.println("Player added to game lobby");
+
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			else{
+				clientServerSpace.put(userName, "duplicateName");
+
 			}
 			
 			//Now the player is added!
@@ -453,11 +535,11 @@ class JoinGame implements Runnable{
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
-		
 
-						
-		
+
 	}
 	
 

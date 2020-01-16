@@ -14,12 +14,13 @@ import org.jspace.SequentialSpace;
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 
 public class client {
-	static final String mainUri = "tcp://192.168.8.109/";
+	static final String mainUri = "tcp://192.168.0.166/";
     public static void main(String[] args) throws InterruptedException, UnknownHostException, IOException {
     	
     	//Connection client to server
 		String uri = mainUri + "clientServerSpace?keep";
 		RemoteSpace clientServerSpace = new RemoteSpace(uri);
+
 
 
     	System.out.println("Client is connected");
@@ -69,8 +70,16 @@ public class client {
 				System.out.print("Game pin?: ");
 				String gamePinStr =  input.readLine();
 				int gamePin = Integer.parseInt(gamePinStr);
-				
-				clientServerSpace.put("newUser","joinGame", userName, gamePin);		
+				Object[] joinGameResp = {"",""};
+				while(!joinGameResp[1].equals("joinedGame")) {
+					clientServerSpace.put("newUser", "joinGame", userName, gamePin);
+					joinGameResp = clientServerSpace.get(new ActualField(userName), new FormalField(String.class));
+					if(joinGameResp[1].equals("duplicateName")) {
+						System.out.println("Username not unique, enter new username: ");
+						userName = input.readLine();
+					}
+				}
+
 				System.out.println("Player is connected!");
 				
 				//Connect Player to local game
@@ -241,6 +250,8 @@ class startGame implements Runnable {
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
+
+
 		while (true) {
 
 			try {
@@ -249,6 +260,10 @@ class startGame implements Runnable {
 
 				String type = (String) message[1];
 				String output = (String) message[2];
+
+				if(type.equals("pinged")){
+					System.out.println("Pinged here...");
+				}
 				
 				//Check what instructions are given:
 				if (type.equals("InputInitial")) {
@@ -370,4 +385,3 @@ class startGame implements Runnable {
 		}
 	}
 }
-
