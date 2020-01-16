@@ -13,7 +13,7 @@ import org.jspace.*;
 
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 public class server {
-	static final String mainUri = "tcp://192.168.0.166/";
+	static final String mainUri = "tcp://192.168.8.109/";
     public static void main(String[] args) throws InterruptedException {
     	
     	//Connection server - client
@@ -159,15 +159,6 @@ class CreateGame implements Runnable{
 
                     if (Counter != 2) {
 
-						System.out.println("Before alive check");
-
-						//Check if all players are still going at it
-						Thread playersAlive = new Thread(new playersAlive(localUserData));
-						playersAlive.start();
-						//Wait for execution.
-						playersAlive.join();
-						System.out.println("AFter alive check");
-
 
 						Questions("Input your new question for the pair, you can type pass to skip"
 								, "Question", "Player");
@@ -215,7 +206,9 @@ class CreateGame implements Runnable{
 		
 	}
 	public void checkIfPlayersInputted(String type) throws InterruptedException {
-
+		Thread Alive = new Thread(new playersAlive(localUserData));
+		Alive.start();
+		Alive.join();
 
 
 		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class),
@@ -421,11 +414,32 @@ class CreateGame implements Runnable{
 }
 
 
-class playersAlive implements  Runnable{
+class playersAlive implements  Runnable {
 	private SequentialSpace localUserData;
 
-	playersAlive(SequentialSpace localUserData){
+	playersAlive(SequentialSpace localUserData) {
 		this.localUserData = localUserData;
+	}
+
+
+	public void run() {
+		try {
+			this.Ping();
+			Thread.sleep(500);
+
+			List<Object[]> allPings = localUserData.getAll(new FormalField(String.class),
+					new ActualField("pinged"));
+
+			System.out.println(allPings.size());
+			for (Object[] ping : allPings) {
+				System.out.println("In allPing loop");
+				localUserData.get(new ActualField(ping[0]),
+						new ActualField("Player"), new FormalField(Integer.class));
+				System.out.println("Player removed: " + ping[0]);
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void Ping() throws InterruptedException {
@@ -433,49 +447,19 @@ class playersAlive implements  Runnable{
 		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class),
 				new ActualField("Player"), new FormalField(Integer.class));
 
-		for(Object[] p : allPlayers) {
+		for (Object[] p : allPlayers) {
+			//To deal with a hidden bug, we have to "flush".
+			//The bug happens when a player disconnects during a "get" request. The "get" request still happens af-
+			//ter the client is completely disconnected.
+			localUserData.put(p[0], "flushed");
 
-
-			localUserData.put(p[0],"pinged","1");
-			System.out.println("1 ping inserted...");
+			localUserData.put(p[0], "pinged");
+			System.out.println("1 ping inserted...to: " + p[0]);
 
 		}
 
 	}
-
-	public void run() {
-		try {
-			Ping();
-			Thread.sleep(10000);
-
-			List<Object[]> allPings =  localUserData.queryAll(new FormalField(String.class),
-					new ActualField("pinged"), new ActualField("1"));
-			System.out.println(allPings.size());
-			for(Object[] ping : allPings) {
-				System.out.println("In allPing loop");
-				localUserData.get(new ActualField(ping[0]),
-						new ActualField("Player"), new FormalField(Integer.class));
-				System.out.println("Player removed: " + ping[0]);
-			}
-
-
-
-
-
-
-
-
-
-
-			} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-
-	}
-
-
-	}
+}
 
 class JoinGame implements Runnable{
 	private SequentialSpace clientServerSpace;

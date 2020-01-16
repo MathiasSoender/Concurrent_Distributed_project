@@ -14,7 +14,7 @@ import org.jspace.SequentialSpace;
 //IMPORTANT: remember to change tcp://xxx for your current wifi!
 
 public class client {
-	static final String mainUri = "tcp://192.168.0.166/";
+	static final String mainUri = "tcp://192.168.8.109/";
     public static void main(String[] args) throws InterruptedException, UnknownHostException, IOException {
     	
     	//Connection client to server
@@ -249,6 +249,7 @@ class startGame implements Runnable {
 	public void run() {
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		new Thread(new aliveChecker(localUserSpace, userName)).start();
 
 
 
@@ -383,5 +384,29 @@ class startGame implements Runnable {
 
 
 		}
+	}
+}
+
+class aliveChecker implements  Runnable{
+	private RemoteSpace localUserSpace;
+	private String UserName;
+
+	aliveChecker(RemoteSpace localUserSpace, String UserName){
+		this.localUserSpace = localUserSpace;
+		this.UserName = UserName;
+
+
+	}
+	public void run(){
+
+		while(true){
+			try {
+				localUserSpace.get(new ActualField(UserName), new FormalField(String.class));
+
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
 	}
 }
