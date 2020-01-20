@@ -425,7 +425,7 @@ class playersAlive implements  Runnable {
 	public void run() {
 		try {
 			this.Ping();
-			Thread.sleep(500);
+			Thread.sleep(2000);
 
 			List<Object[]> allPings = localUserData.getAll(new FormalField(String.class),
 					new ActualField("pinged"));
