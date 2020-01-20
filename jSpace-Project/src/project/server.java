@@ -425,7 +425,7 @@ class playersAlive implements  Runnable {
 	public void run() {
 		try {
 			this.Ping();
-			Thread.sleep(2000);
+			Thread.sleep(5000);
 
 			List<Object[]> allPings = localUserData.getAll(new FormalField(String.class),
 					new ActualField("pinged"));
@@ -452,7 +452,6 @@ class playersAlive implements  Runnable {
 			//The bug happens when a player disconnects during a "get" request. The "get" request still happens af-
 			//ter the client is completely disconnected.
 			localUserData.put(p[0], "flushed");
-
 			localUserData.put(p[0], "pinged");
 			System.out.println("1 ping inserted...to: " + p[0]);
 
