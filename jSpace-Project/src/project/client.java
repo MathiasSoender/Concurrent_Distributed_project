@@ -11,9 +11,9 @@ import org.jspace.ActualField;
 import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
 import org.jspace.SequentialSpace;
-//IMPORTANT: remember to change tcp://xxx for your current wifi!
 
 public class client {
+	//IMPORTANT: remember to change tcp://xxx for your current wifi!
 	static final String mainUri = "tcp://192.168.8.109/";
     public static void main(String[] args) throws InterruptedException, UnknownHostException, IOException {
     	
@@ -26,9 +26,10 @@ public class client {
     	System.out.println("Client is connected");
 
 		BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
-		
 		System.out.print("Username: ");
 		String userName = input.readLine();
+
+		//Asks the user if they want to create a game
 		String createGame = "";
 		while(!createGame.equals("Y") && !createGame.equals("N")) {
 			System.out.print("Create game? (Y/N): ");
@@ -66,23 +67,28 @@ public class client {
 		if(createGame.equals("N")){
 
 			RemoteSpace localUserData;
-			
-				System.out.print("Game pin?: ");
-				String gamePinStr =  input.readLine();
-				int gamePin = Integer.parseInt(gamePinStr);
-				Object[] joinGameResp = {"",""};
-				while(!joinGameResp[1].equals("joinedGame")) {
-					clientServerSpace.put("newUser", "joinGame", userName, gamePin);
-					joinGameResp = clientServerSpace.get(new ActualField(userName), new FormalField(String.class));
-					if(joinGameResp[1].equals("duplicateName")) {
-						System.out.println("Username not unique, enter new username: ");
-						userName = input.readLine();
-					}
+
+			//asks for the game pin. Host should provide this.
+			System.out.print("Game pin?: ");
+			String gamePinStr =  input.readLine();
+			int gamePin = Integer.parseInt(gamePinStr);
+
+			Object[] joinGameResp = {"",""};
+			while(!joinGameResp[1].equals("joinedGame")) {
+				//Asks the server to insert us as a player
+				clientServerSpace.put("newUser", "joinGame", userName, gamePin);
+				joinGameResp = clientServerSpace.get(new ActualField(userName), new FormalField(String.class));
+
+				//Not a unique unsername, try to insert a new username
+				if(joinGameResp[1].equals("duplicateName")) {
+					System.out.println("Username not unique, enter new username: ");
+					userName = input.readLine();
 				}
+			}
 
 				System.out.println("Player is connected!");
 				
-				//Connect Player to local game
+				//Connect Player to local game space
 				String uriLocalData = mainUri +"localUserData"+gamePin+"?keep";
 				localUserData = new RemoteSpace(uriLocalData);
 
@@ -103,7 +109,7 @@ public class client {
 }
 }
 
-
+//Thread that handles the clients connection with the server thread
 class startGame implements Runnable {
 	private RemoteSpace localUserSpace;
 	private String userName;
@@ -115,56 +121,52 @@ class startGame implements Runnable {
 
 	}
 
+
+	//Votes for a question
 	public void questionVoting() throws IOException, InterruptedException {
 
 		List<Object[]> allQuestions = localUserSpace.queryAll(new ActualField("QuestionMain"),
 				new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
 
 
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
-			Integer Counter = 1;
-
-
-			for (Object[] q : allQuestions) {
-
-
-				System.out.println(Counter + ") Question:" + q[2]);
-				Counter++;
-			}
-			String QuestionChosen = "10000000";
-			while (Integer.parseInt(QuestionChosen) >= Counter || Integer.parseInt(QuestionChosen) <= 0) {
-				System.out.println("Choose your number: ");
-				QuestionChosen = reader.readLine();
-			}
-
-			System.out.println("You chose question number:" + QuestionChosen);
-
-			int i = Integer.parseInt(QuestionChosen);
-			Object[] Question = allQuestions.get(i - 1);
+		//Counter for printing in console.
+		Integer Counter = 1;
+		//Display all questions
+		for (Object[] q : allQuestions) {
 
 
-			Object[] QuestionValue = localUserSpace.get(new ActualField("QuestionMain"), new ActualField(Question[1]), new ActualField(Question[2]), new FormalField(Integer.class));
-
-			Integer Value = (Integer) QuestionValue[3] + 1;
-
-
-			localUserSpace.put("QuestionMain", Question[1], Question[2], Value);
-
-
-			//Value of chosen pair
-			System.out.println("Your chosen question now has value: " + Value);
-
-
+			System.out.println(Counter + ") Question:" + q[2]);
+			Counter++;
+		}
+		//Ensure that the number chosen is legit
+		String QuestionChosen = "10000000";
+		while (Integer.parseInt(QuestionChosen) >= Counter || Integer.parseInt(QuestionChosen) <= 0) {
+			System.out.println("Choose your number: ");
+			QuestionChosen = reader.readLine();
 		}
 
+		System.out.println("You chose question number:" + QuestionChosen);
+
+		//Reinsert the question with incremented score
+		int i = Integer.parseInt(QuestionChosen);
+		Object[] Question = allQuestions.get(i - 1);
+		Object[] QuestionValue = localUserSpace.get(new ActualField("QuestionMain"), new ActualField(Question[1]), new ActualField(Question[2]), new FormalField(Integer.class));
+
+		Integer Value = (Integer) QuestionValue[3] + 1;
+		localUserSpace.put("QuestionMain", Question[1], Question[2], Value);
 
 
+		//Value of chosen pair
+		System.out.println("Your chosen question now has value: " + Value);
 
+
+	}
+
+	//Votes for a pair
 	public void pairVoting() throws InterruptedException, IOException {
-
-
+		//Works the same way as questionVoting
 
 		List<Object[]> allPairs = localUserSpace.queryAll(new ActualField("pair"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
 		Object[] Question = localUserSpace.query(new ActualField("RandomInitialQuestion"),new FormalField(String.class));
@@ -190,13 +192,9 @@ class startGame implements Runnable {
 
 		int i = Integer.parseInt(PairChosen);
 		Object[] Pair = allPairs.get(i-1);
-
-
 		Object[] PairValue = localUserSpace.get(new ActualField("pair"), new ActualField(Pair[1]), new ActualField(Pair[2]),new FormalField(Integer.class));
 
 		Integer Value = (Integer) PairValue[3]+1;
-
-
 		localUserSpace.put("pair", Pair[1], Pair[2],Value);
 
 
@@ -204,10 +202,9 @@ class startGame implements Runnable {
 		System.out.println("Your chosen pair now has value: "+ Value);
 
 
-
-
 	}
 
+	//Back 2 back players answering of question given
 	public void questionPairVoting() throws IOException, InterruptedException {
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -222,18 +219,23 @@ class startGame implements Runnable {
 
 
 	}
+
+	//Method for displaying score:
 	public void showScore(boolean isFinal) throws InterruptedException {
 		List<Object[]> allPlayers = localUserSpace.queryAll(new FormalField(String.class),  new FormalField(String.class),new FormalField(Integer.class));
 
 
 		for (Object[] p : allPlayers) {
+			//Prints your own score
 			if(p[0].equals(userName)){
 				System.out.println("You have: " + p[2]);
 			}
 			else {
-
+				//prints the score of all players (Shown names)
 				if (isFinal) {
 					System.out.print(p[0] + ": ");
+				//Prints the score of all players (anonymously)
+				//Names are hidden, as we do not want a wining player being targeted.
 				} else {
 					System.out.print("Some user: ");
 				}
@@ -249,6 +251,7 @@ class startGame implements Runnable {
 	public void run() {
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		//Start the thread that answers pings
 		new Thread(new aliveChecker(localUserSpace, userName)).start();
 
 
@@ -262,13 +265,12 @@ class startGame implements Runnable {
 				String type = (String) message[1];
 				String output = (String) message[2];
 
-				if(type.equals("pinged")){
-					System.out.println("Pinged here...");
-				}
+
 				
 				//Check what instructions are given:
 				if (type.equals("InputInitial")) {
 
+					//Initial question given, and passed back
 					System.out.println(output);
 					String Question = reader.readLine();
 					
@@ -280,27 +282,16 @@ class startGame implements Runnable {
 
 				}
 
-				if (type.equals("hostmessage")) {
 
-					System.out.println(output);
-					String Question = "";
-					while(!Question.equals("Y")) {
-						Question = reader.readLine();
-					}
-
-					localUserSpace.put("continueGame");
-
-				}
 
 				if (type.equals("InputPairVoting")) {
 					System.out.println(output);
+					//Voting for pairs
 					pairVoting();
 
 					//Counter stuff
 					Object[] fooCounter = localUserSpace.get(new ActualField("globalCounter"), new FormalField(Integer.class));
 					localUserSpace.put(fooCounter[0], (Integer) fooCounter[1]+1);
-
-
 
 
 
@@ -330,6 +321,7 @@ class startGame implements Runnable {
 					showScore(false);
 				}
 
+				//back to back players answer the question
 				if (type.equals("InputAnswerQuestion")) {
 
 					Object[] Question = localUserSpace.query(new ActualField("QuestionForPair"), new FormalField(String.class));
@@ -349,6 +341,7 @@ class startGame implements Runnable {
 					String Question = reader.readLine();
 					//Gives the option of passing, if no questions comes to mind.
 					//^This ensures game is kept on playing.
+					//However somebody must ask a question!
 					if(!Question.equals("pass")) {
 						localUserSpace.put("QuestionMain", userName, Question, 0);
 					}
@@ -362,7 +355,7 @@ class startGame implements Runnable {
 				}
 
 				if(type.equals("InputQuestionVoting")) {
-
+					//Votes for a question
 					questionVoting();
 
 					//Counter stuff
@@ -387,6 +380,7 @@ class startGame implements Runnable {
 	}
 }
 
+//Thread that continuously handles the pings to clients.
 class aliveChecker implements  Runnable{
 	private RemoteSpace localUserSpace;
 	private String UserName;

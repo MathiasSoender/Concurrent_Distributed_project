@@ -11,8 +11,8 @@ import java.util.Random;
 
 import org.jspace.*;
 
-//IMPORTANT: remember to change tcp://xxx for your current wifi!
 public class server {
+	//IMPORTANT: remember to change tcp://xxx for your current wifi!
 	static final String mainUri = "tcp://192.168.8.109/";
     public static void main(String[] args) throws InterruptedException {
     	
@@ -64,21 +64,19 @@ class CreateGame implements Runnable{
 	private SequentialSpace localUserData;
 	public Integer Counter;
 	CreateGame(RandomSpace gamePins, SequentialSpace clientServerSpace,
-			String userName, SpaceRepository clientServerRepo) throws InterruptedException {
+			String userName, SpaceRepository clientServerRepo) {
 
 		this.gamePins = gamePins;
 		this.clientServerSpace = clientServerSpace;
 		this.userName = userName;
 		this.clientServerRepo = clientServerRepo;
-		//Space with generic questions. Used if no player inputs questions in the main question round.
 
 
 	}
 	
 	@Override
 	public void run() {
-		//Create new spaces of specific game
-		    //Create a specific UserName space for this game
+		//Create a new space of specific game
 		this.localUserData = new SequentialSpace();
 
 
@@ -91,14 +89,14 @@ class CreateGame implements Runnable{
 
 			System.out.println(localGamePin[0]);
 						
-			//Add spaces to our repo, so Client can connect
+			//Add space to our repo, so Client can connect
 			clientServerRepo.add("localUserData"+localGamePin[0], localUserData);
 
 			//Add a counter to determine if everybody entered a value
 			localUserData.put("globalCounter",0);
 
 
-			//Add our user as host. We assume host also plays, so add him as player!
+			//Add the host as a Player.
 			localUserData.put(userName, "Player", 0);
 
 			//And finally we add a return statement, saying everything went fine and giving the game Pin:
@@ -112,9 +110,11 @@ class CreateGame implements Runnable{
 			//Ask the players to input their inital game for pairing round
 			Questions("Input your initial question","Initial","Player");
 
+			//Check if all players are ready to continue
 			checkIfPlayersInputted("Player");
 			System.out.println("Serverside: Initial questions given, Host has continued game");
 
+			//Check if any initial questions are left:
 			boolean runGame = RandomInitialQuestion();
 			while (runGame) {
 
@@ -123,30 +123,22 @@ class CreateGame implements Runnable{
 
                 CreatePairs();
 
+                //Voting round, players vote for the pair
                 Questions("Vote for your favorite pair", "PairVoting", "Player");
 
-                //Check if players have inputted
 				checkIfPlayersInputted("Player");
 
-
-
+				//Tell the players that back to back has been initialized
 				InitBackToBack("GO BACK TO BACK!!!!");
 
 
                 //Now pair needs to answer the question chosen
-
-                System.out.println("Waiting for question");
                 Object[] Question = localUserData.get(new ActualField("RandomInitialQuestion"), new FormalField(String.class));
 
-                System.out.println("Got the question");
                 localUserData.put("QuestionForPair", Question[1]);
 
+                //Counter keeps track of how many questions the pair has answered incorrectly in arow
                 Counter = 0;
-
-
-                System.out.println("Before while");
-
-
                 while (Counter != 2) {
 
                     Questions("Answer the question: ", "AnswerQuestion", "BackToBack");
@@ -154,9 +146,11 @@ class CreateGame implements Runnable{
 					System.out.println("waiting for b2b");
 					checkIfPlayersInputted("BackToBack");
 
+					//Determine how the answering of the question went
 					PointsForPair();
 
 
+					//Players (not back2back) ask new questions for the same pair
                     if (Counter != 2) {
 
 
@@ -167,15 +161,12 @@ class CreateGame implements Runnable{
 
                         Questions(" Vote for your favorite Question", "QuestionVoting", "Player");
 
-                        //HostMessage("Continue Game (Y/N)?");
-                        //localUserData.get(new ActualField("continueGame"));
 						checkIfPlayersInputted("Player");
 
-
+						//Finds the maximum voted question
 						QuestionVoting();
 
 
-                        System.out.println("Inside While");
 
                     }
 
@@ -190,7 +181,9 @@ class CreateGame implements Runnable{
             }
 			//End off game.
 			Questions("Scoreboard: ","FinalScoreBoard","Player");
+			//Forces the clients to exit
 			Questions("Goodbye, Thanks for playing", "Exit","Player");
+			//All clients have exited
 			checkIfPlayersInputted("Player");
 			//Re insert the game pin
 			gamePins.put((Integer) localGamePin[0]);
@@ -205,7 +198,11 @@ class CreateGame implements Runnable{
 						
 		
 	}
+	//Method for checking if all players are ready to proceed
 	public void checkIfPlayersInputted(String type) throws InterruptedException {
+		//Here the ping happens (to check if players are still connected)
+		//It is smart to have the ping here, as it takes some runtime.
+		//But the players are spending their time doing an action, so we have some wait time anyway.
 		Thread Alive = new Thread(new playersAlive(localUserData));
 		Alive.start();
 		Alive.join();
@@ -214,6 +211,7 @@ class CreateGame implements Runnable{
 		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class),
 				new ActualField(type), new FormalField(Integer.class));
 
+		//Finds the counter, matching the exact player size.
 		Object[] fooCounter =  localUserData.get(new ActualField("globalCounter"),
 				new ActualField(allPlayers.size()));
 		localUserData.put(fooCounter[0], 0);
@@ -221,7 +219,7 @@ class CreateGame implements Runnable{
 	}
 
 
-
+	//Handles the answering of a question
 	public void PointsForPair() throws InterruptedException {
         Object[] Player1 = localUserData.get(new FormalField(String.class), new ActualField("BackToBack"), new FormalField(Integer.class));
         Object[] Player2 = localUserData.get(new FormalField(String.class), new ActualField("BackToBack"), new FormalField(Integer.class));
@@ -231,6 +229,7 @@ class CreateGame implements Runnable{
 
         localUserData.get(new ActualField("QuestionForPair"), new FormalField(String.class));
 
+        //The could not agreed (both back2back players answered themselves, or vice versa)
         if (Answer1[2].equals(Answer2[2])) {
             Counter++;
             //If back2back lose, put them back as players
@@ -247,7 +246,7 @@ class CreateGame implements Runnable{
 
 
         }
-
+		//Correct answer rewards 1 point, and resets the counter.
         else {
             localUserData.put(Player1[0],Player1[1],((Integer) Player1[2])+1);
             localUserData.put(Player2[0],Player2[1],((Integer) Player2[2])+1);
@@ -257,6 +256,7 @@ class CreateGame implements Runnable{
 
     }
 
+    //Method for asking questions to the players
 	public void Questions(String output, String Round, String Type) throws InterruptedException {
 
 		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new ActualField(Type), new FormalField(Integer.class));
@@ -270,43 +270,39 @@ class CreateGame implements Runnable{
 
 	}
 
+	//Finds the question with max votes
     public void QuestionVoting() throws InterruptedException {
         List<Object[]> Questions = localUserData.getAll(new ActualField("QuestionMain"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
-        //No need to do voting if generic question was chosen.
 
+		Integer max = 0;
+		String q1 = new String();
+		String user = new String();
 
-
-			Integer max = 0;
-			String q1 = new String();
-			String user = new String();
-
-			//If no player asks a question, insert a random from the space of generic questions:
-
-
-			for (Object[] q : Questions) {
-				if ((Integer) q[3] > max) {
-					max = (Integer) q[3];
-					q1 = (String) q[2];
-					user = (String) q[1];
-				}
-
+		for (Object[] q : Questions) {
+			if ((Integer) q[3] > max) {
+				max = (Integer) q[3];
+				q1 = (String) q[2];
+				user = (String) q[1];
 			}
 
-
-			Object[] winner = localUserData.get(new ActualField(user), new ActualField("Player"), new FormalField(Integer.class));
-			localUserData.put(user, "Player", ((Integer) winner[2]) + 1);
-
-			localUserData.put("QuestionForPair", q1);
 		}
 
 
+		Object[] winner = localUserData.get(new ActualField(user), new ActualField("Player"), new FormalField(Integer.class));
+		//The player that asked the question is rewarded with 1 point.
+		localUserData.put(user, "Player", ((Integer) winner[2]) + 1);
 
+		localUserData.put("QuestionForPair", q1);
+	}
+
+	//Finds the must voted back 2 back pair.
     public void InitBackToBack(String output) throws InterruptedException {
 		List<Object[]> Pairs = localUserData.queryAll(new ActualField("pair"), new FormalField(String.class), new FormalField(String.class),new FormalField(Integer.class));
 		Integer max = 0;
 		String pair1 = new String();
 		String pair2 = new String();
 
+		//Max of all pairs.
 		for(Object[] p : Pairs) {
 			if ((Integer) p[3] > max) {
 				max = (Integer) p[3];
@@ -323,13 +319,14 @@ class CreateGame implements Runnable{
 		localUserData.put(FooPlayer1[0],"BackToBack",FooPlayer1[2]);
 		localUserData.put(FooPlayer2[0],"BackToBack",FooPlayer2[2]);
 
+		//Tells the chosen pair to go back to back.
 		Questions(pair1 +" and "+pair2+" GO BACK TO BACK","BackToBack","Player");
 
 
 
 	}
 
-
+	//method for creating random pairs
 	public void CreatePairs() throws InterruptedException {
 
 
@@ -341,12 +338,14 @@ class CreateGame implements Runnable{
 
 		Integer size = 4;
 
+		//Make a list of all usernames
 		List<String> usernames = new ArrayList<String>();
 
 		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class), new ActualField("Player"), new FormalField(Integer.class));
 
 		Random randomizer = new Random();
 
+		//Adds all usernames from the allPlayers list<obj> to usernames list.
 		for (Object[] p : allPlayers) {
 			System.out.println("Player : " + p[0] + " Found");
 
@@ -355,6 +354,7 @@ class CreateGame implements Runnable{
 
 		}
 
+		//If less than 4 players, make size 2.
 		if (usernames.size()<4) {
 			size = 2;
 		}
@@ -362,17 +362,15 @@ class CreateGame implements Runnable{
 		for (Integer i = 0; i < size; i++) {
 
 			//Finding random pairs
-
-
 			String random1 = usernames.get(randomizer.nextInt(usernames.size()));
-
 			String random2 = usernames.get(randomizer.nextInt(usernames.size()));
 
 
 			//Check if they aren't the same person
+			//And check if they already are added.
 			if ( random1.equals(random2) ||
-					(localUserData.queryp(new ActualField("pair"),new ActualField(random1),new ActualField(random2),new ActualField(0)))!=null ||
-			(localUserData.queryp(new ActualField("pair"),new ActualField(random2),new ActualField(random1),new ActualField(0)))!=null)
+				(localUserData.queryp(new ActualField("pair"),new ActualField(random1),new ActualField(random2),new ActualField(0)))!=null ||
+				(localUserData.queryp(new ActualField("pair"),new ActualField(random2),new ActualField(random1),new ActualField(0)))!=null)
 			{
 				i--;
 			}
@@ -386,6 +384,8 @@ class CreateGame implements Runnable{
 
 	}
 
+	//Method that grabs a random initial question.
+	//At the same time it checks if any initial questions are left.
 	public boolean RandomInitialQuestion() throws InterruptedException {
 
 		//Removes the last question if it exists.
@@ -413,7 +413,7 @@ class CreateGame implements Runnable{
 	}
 }
 
-
+//Thread that checks if disconnections occured.
 class playersAlive implements  Runnable {
 	private SequentialSpace localUserData;
 
@@ -424,15 +424,15 @@ class playersAlive implements  Runnable {
 
 	public void run() {
 		try {
+			//Pings and then sleeps
 			this.Ping();
-			Thread.sleep(5000);
+			Thread.sleep(2000);
 
 			List<Object[]> allPings = localUserData.getAll(new FormalField(String.class),
 					new ActualField("pinged"));
 
-			System.out.println(allPings.size());
+			//Finds all unremoved pings:
 			for (Object[] ping : allPings) {
-				System.out.println("In allPing loop");
 				localUserData.get(new ActualField(ping[0]),
 						new ActualField("Player"), new FormalField(Integer.class));
 				System.out.println("Player removed: " + ping[0]);
@@ -442,6 +442,7 @@ class playersAlive implements  Runnable {
 		}
 	}
 
+	//Pings all players
 	public void Ping() throws InterruptedException {
 
 		List<Object[]> allPlayers = localUserData.queryAll(new FormalField(String.class),
@@ -482,6 +483,8 @@ class JoinGame implements Runnable{
 			RemoteSpace localUserData = new RemoteSpace(uriLocalData);
 			List<Object[]> AllPlayers = localUserData.queryAll(new FormalField(String.class),
 					new ActualField("Player"), new ActualField(0));
+
+			//Check if we are unique
 			boolean uniqueName = true;
 			for(Object[] p : AllPlayers){
 				if(p[0].equals(userName)){
@@ -494,9 +497,9 @@ class JoinGame implements Runnable{
 			//We add the name to the local user names:
 			if(uniqueName) {
 				try {
+					//insert ourself as a new player
 					localUserData.put(userName, "Player", 0);
 					clientServerSpace.put(userName, "joinedGame");
-					//Also add an inital score:
 					System.out.println("Player added to game lobby");
 
 				} catch (InterruptedException e1) {
@@ -504,6 +507,7 @@ class JoinGame implements Runnable{
 					e1.printStackTrace();
 				}
 			}
+			//if not unique, ask the player to insert new username
 			else{
 				clientServerSpace.put(userName, "duplicateName");
 
