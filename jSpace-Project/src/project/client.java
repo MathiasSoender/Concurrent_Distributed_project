@@ -14,7 +14,7 @@ import org.jspace.SequentialSpace;
 
 public class client {
 	//IMPORTANT: remember to change tcp://xxx for your current wifi!
-	static final String mainUri = "tcp://192.168.8.109/";
+	static final String mainUri = "tcp://192.168.8.114/";
     public static void main(String[] args) throws InterruptedException, UnknownHostException, IOException {
     	
     	//Connection client to server
@@ -187,8 +187,8 @@ class startGame implements Runnable {
 			System.out.println("Choose your number: ");
 			PairChosen = reader.readLine();
 		}
-
-		System.out.println("You chose pair number:" +PairChosen);
+		System.out.println("\n//////////////////////////");
+		System.out.println("\nYou chose pair number:" +PairChosen);
 
 		int i = Integer.parseInt(PairChosen);
 		Object[] Pair = allPairs.get(i-1);
@@ -264,6 +264,8 @@ class startGame implements Runnable {
 
 				String type = (String) message[1];
 				String output = (String) message[2];
+
+				System.out.println("______________________________\n");
 
 
 				
