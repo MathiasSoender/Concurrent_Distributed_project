@@ -13,7 +13,7 @@ import org.jspace.*;
 
 public class server {
 	//IMPORTANT: remember to change tcp://xxx for your current wifi!
-	static final String mainUri = "tcp://192.168.8.114/";
+	static final String mainUri = "tcp://192.168.0.166/";
     public static void main(String[] args) throws InterruptedException {
     	
     	//Connection server - client
@@ -248,7 +248,7 @@ class CreateGame implements Runnable{
             else {
 				localUserData.put(Player1);
 				localUserData.put(Player2);
-				Questions(("YOU LOST  THIS ROUND, BE CAREFUL!"),"BackToBack","BackToBack");
+				Questions(("YOU LOST  THIS ROUND, BE CAREFUL!\n Waiting for next question..."),"BackToBack","BackToBack");
 				Questions(("They lost this time!\n"+Player1[0]+" answered: "+Answer1[2]+"\n"+Player2[0]+" answered: "+Answer2[2] ),"BackToBack","Player");
 
 			}
