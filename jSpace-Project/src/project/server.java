@@ -232,15 +232,25 @@ class CreateGame implements Runnable{
         //The could not agreed (both back2back players answered themselves, or vice versa)
         if (Answer1[2].equals(Answer2[2])) {
             Counter++;
+
             //If back2back lose, put them back as players
             if (Counter == 2){
+				Questions(("They lost this time!\n"+Player1[0]+" answered: "+Answer1[2]+"\n"+Player2[0]+" answered: "+Answer2[2] ),"BackToBack","Player");
+
 				localUserData.put(Player1[0], "Player", Player1[2]);
 				localUserData.put(Player2[0], "Player", Player2[2]);
+
+				Questions(("Lost two times in a row, new round!"),"BackToBack","Player");
+
+
 				}
 
             else {
 				localUserData.put(Player1);
 				localUserData.put(Player2);
+				Questions(("YOU LOST  THIS ROUND, BE CAREFUL!"),"BackToBack","BackToBack");
+				Questions(("They lost this time!\n"+Player1[0]+" answered: "+Answer1[2]+"\n"+Player2[0]+" answered: "+Answer2[2] ),"BackToBack","Player");
+
 			}
 
 
@@ -251,7 +261,10 @@ class CreateGame implements Runnable{
             localUserData.put(Player1[0],Player1[1],((Integer) Player1[2])+1);
             localUserData.put(Player2[0],Player2[1],((Integer) Player2[2])+1);
             Counter=0;
-        }
+			Questions(("YOU AGREED!"),"BackToBack","BackToBack");
+			Questions(("They agreed this time!\n"+Player1[0]+" answered: "+Answer1[2]+"\n"+Player2[0]+" answered: "+Answer2[2] ),"BackToBack","Player");
+
+		}
 
 
     }

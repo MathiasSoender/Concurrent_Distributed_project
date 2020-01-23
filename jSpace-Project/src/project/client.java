@@ -14,7 +14,7 @@ import org.jspace.SequentialSpace;
 
 public class client {
 	//IMPORTANT: remember to change tcp://xxx for your current wifi!
-	static final String mainUri = "tcp://192.168.8.114/";
+	static final String mainUri = "tcp://192.168.0.166/";
     public static void main(String[] args) throws InterruptedException, UnknownHostException, IOException {
     	
     	//Connection client to server
