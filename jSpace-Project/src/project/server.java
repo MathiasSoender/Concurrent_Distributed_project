@@ -36,7 +36,7 @@ public class server {
 
 			//This is join game
 			if(newUserObj[1].equals("joinGame")) {
-		        new Thread(new JoinGame(clientServerSpace, (String) newUserObj[2],(Integer) newUserObj[3])).start();
+		        new Thread(new JoinGame(clientServerSpace, (String) newUserObj[2],(Integer) newUserObj[3], gamePins)).start();
 
 
 			}
@@ -478,12 +478,14 @@ class JoinGame implements Runnable{
 	private SequentialSpace clientServerSpace;
 	private String userName;
 	private Integer gamePin;
+	private RandomSpace gamePins;
 
 	
-	JoinGame(SequentialSpace clientServerSpace, String userName, Integer gamePin) {
+	JoinGame(SequentialSpace clientServerSpace, String userName, Integer gamePin, RandomSpace gamePins) {
 		this.clientServerSpace = clientServerSpace;
 		this.userName = userName;
 		this.gamePin = gamePin;
+		this.gamePins = gamePins;
 		
 	}
 	
@@ -493,38 +495,51 @@ class JoinGame implements Runnable{
 		String uriLocalData =server.mainUri+"localUserData"+gamePin+"?keep";
 
 		try {
-			RemoteSpace localUserData = new RemoteSpace(uriLocalData);
-			List<Object[]> AllPlayers = localUserData.queryAll(new FormalField(String.class),
-					new ActualField("Player"), new ActualField(0));
+			//Check if game exists:
+			Object[] checkGamePin = gamePins.queryp(new ActualField(gamePin));
+			//Game pin has not been used:
+			if(!(checkGamePin == null)){
+				clientServerSpace.put(userName, "gamePinError");
 
-			//Check if we are unique
-			boolean uniqueName = true;
-			for(Object[] p : AllPlayers){
-				if(p[0].equals(userName)){
-					uniqueName = false;
+			}
+			else {
+
+
+				RemoteSpace localUserData = new RemoteSpace(uriLocalData);
+				List<Object[]> AllPlayers = localUserData.queryAll(new FormalField(String.class),
+						new ActualField("Player"), new ActualField(0));
+
+				//Check if we are unique
+				boolean uniqueName = true;
+				for (Object[] p : AllPlayers) {
+					if (p[0].equals(userName)) {
+						uniqueName = false;
+					}
+
 				}
 
-			}
 
+				//We add the name to the local user names:
+				if (uniqueName) {
+					try {
+						//insert ourself as a new player
+						localUserData.put(userName, "Player", 0);
+						clientServerSpace.put(userName, "joinedGame");
+						System.out.println("Player added to game lobby");
 
-			//We add the name to the local user names:
-			if(uniqueName) {
-				try {
-					//insert ourself as a new player
-					localUserData.put(userName, "Player", 0);
-					clientServerSpace.put(userName, "joinedGame");
-					System.out.println("Player added to game lobby");
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+				//if not unique, ask the player to insert new username
+				else {
+					clientServerSpace.put(userName, "duplicateName");
 
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
 				}
 			}
-			//if not unique, ask the player to insert new username
-			else{
-				clientServerSpace.put(userName, "duplicateName");
 
-			}
+
 			
 			//Now the player is added!
 

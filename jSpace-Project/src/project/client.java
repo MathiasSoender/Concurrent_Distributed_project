@@ -79,6 +79,12 @@ public class client {
 				clientServerSpace.put("newUser", "joinGame", userName, gamePin);
 				joinGameResp = clientServerSpace.get(new ActualField(userName), new FormalField(String.class));
 
+				if(joinGameResp[1].equals("gamePinError")){
+					System.out.println("Game pin does not exist, enter new: ");
+					gamePinStr = input.readLine();
+					gamePin = Integer.parseInt(gamePinStr);
+				}
+
 				//Not a unique unsername, try to insert a new username
 				if(joinGameResp[1].equals("duplicateName")) {
 					System.out.println("Username not unique, enter new username: ");
